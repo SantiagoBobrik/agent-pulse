@@ -1,0 +1,24 @@
+# Binary
+claude-pulse
+*.exe
+*.test
+*.out
+
+# Go
+vendor/
+
+# Config (user-specific)
+config.yaml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.tmp
+
+# Environment
+.env*
