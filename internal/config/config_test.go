@@ -25,9 +25,8 @@ func TestLoadDefaults(t *testing.T) {
 	if len(cfg.Clients) != 0 {
 		t.Errorf("Clients = %v, want empty", cfg.Clients)
 	}
-	wantGateway := "http://localhost:8080"
-	if cfg.GatewayURL != wantGateway {
-		t.Errorf("GatewayURL = %q, want %q", cfg.GatewayURL, wantGateway)
+	if cfg.GatewayURL != DefaultGatewayURL {
+		t.Errorf("GatewayURL = %q, want %q", cfg.GatewayURL, DefaultGatewayURL)
 	}
 }
 
@@ -130,7 +129,7 @@ func TestLoadWithGatewayURL(t *testing.T) {
 	os.MkdirAll(configDir, 0755)
 
 	yaml := `port: 9090
-gateway_url: "http://192.168.1.50:9090"
+gateway_url: "http://192.168.1.50"
 `
 	os.WriteFile(filepath.Join(configDir, "config.yaml"), []byte(yaml), 0644)
 
@@ -138,12 +137,12 @@ gateway_url: "http://192.168.1.50:9090"
 	if err != nil {
 		t.Fatalf("Load() error = %v", err)
 	}
-	if cfg.GatewayURL != "http://192.168.1.50:9090" {
-		t.Errorf("GatewayURL = %q, want http://192.168.1.50:9090", cfg.GatewayURL)
+	if cfg.GatewayURL != "http://192.168.1.50" {
+		t.Errorf("GatewayURL = %q, want http://192.168.1.50", cfg.GatewayURL)
 	}
 }
 
-func TestLoadGatewayURLDefaultFromPort(t *testing.T) {
+func TestLoadGatewayURLDefaultWhenOmitted(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("HOME", dir)
 
@@ -158,8 +157,8 @@ func TestLoadGatewayURLDefaultFromPort(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Load() error = %v", err)
 	}
-	if cfg.GatewayURL != "http://localhost:3000" {
-		t.Errorf("GatewayURL = %q, want http://localhost:3000", cfg.GatewayURL)
+	if cfg.GatewayURL != DefaultGatewayURL {
+		t.Errorf("GatewayURL = %q, want %q", cfg.GatewayURL, DefaultGatewayURL)
 	}
 }
 

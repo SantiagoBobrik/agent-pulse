@@ -43,7 +43,7 @@ func dispatch(provider domain.Provider, eventType domain.EventType, data json.Ra
 		return fmt.Errorf("marshal event: %w", err)
 	}
 
-	url := cfg.GatewayURL + "/event"
+	url := fmt.Sprintf("%s:%d/event", cfg.GatewayURL, cfg.Port)
 	client := &http.Client{Timeout: 2 * time.Second}
 
 	resp, err := client.Post(url, "application/json", bytes.NewReader(body))

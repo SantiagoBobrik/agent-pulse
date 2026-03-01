@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"log/slog"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -11,8 +12,9 @@ import (
 )
 
 const (
-	DefaultPort        = 8080
+	DefaultPort        = 8789
 	DefaultBindAddress = "127.0.0.1"
+	DefaultGatewayURL  = "http://localhost"
 )
 
 type Config struct {
@@ -31,45 +33,40 @@ func configPath() (string, error) {
 }
 
 func Load() (*Config, error) {
-	cfg := &Config{
-		Port:        DefaultPort,
-		BindAddress: DefaultBindAddress,
-	}
+	cfg := &Config{}
 
-	path, err := configPath()
-	if err != nil {
-		return applyDefaults(cfg)
-	}
-
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return applyDefaults(cfg)
-	}
-
-	if err := yaml.Unmarshal(data, cfg); err != nil {
-		return nil, fmt.Errorf("invalid config at %s: %w", path, err)
-	}
-
-	if cfg.Port < 1024 || cfg.Port > 65535 {
-		return nil, fmt.Errorf("port must be between 1024 and 65535, got %d", cfg.Port)
-	}
-
-	if cfg.BindAddress == "" {
-		cfg.BindAddress = DefaultBindAddress
-	}
-
-	return applyDefaults(cfg)
-}
-
-func applyDefaults(cfg *Config) (*Config, error) {
-	if cfg.GatewayURL == "" {
-		cfg.GatewayURL = fmt.Sprintf("http://localhost:%d", cfg.Port)
-	} else {
-		if _, err := url.ParseRequestURI(cfg.GatewayURL); err != nil {
-			return nil, fmt.Errorf("invalid gateway_url %q: %w", cfg.GatewayURL, err)
+	if path, err := configPath(); err == nil {
+		if data, err := os.ReadFile(path); err == nil {
+			if err := yaml.Unmarshal(data, cfg); err != nil {
+				return nil, fmt.Errorf("invalid config at %s: %w", path, err)
+			}
 		}
 	}
+	if err := cfg.Validate(); err != nil {
+		slog.Error("invalid configuration", "error", err)
+		return nil, err
+	}
+
 	return cfg, nil
+}
+
+func (c *Config) Validate() error {
+	if c.Port == 0 {
+		c.Port = DefaultPort
+	}
+	if c.Port < 1024 || c.Port > 65535 {
+		return fmt.Errorf("port must be between 1024 and 65535, got %d", c.Port)
+	}
+	if c.BindAddress == "" {
+		c.BindAddress = DefaultBindAddress
+	}
+	if c.GatewayURL == "" {
+		c.GatewayURL = DefaultGatewayURL
+	}
+	if _, err := url.ParseRequestURI(c.GatewayURL); err != nil {
+		return fmt.Errorf("invalid gateway_url %q: %w", c.GatewayURL, err)
+	}
+	return nil
 }
 
 func Save(cfg *Config) error {
