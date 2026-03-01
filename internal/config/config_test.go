@@ -25,6 +25,10 @@ func TestLoadDefaults(t *testing.T) {
 	if len(cfg.Clients) != 0 {
 		t.Errorf("Clients = %v, want empty", cfg.Clients)
 	}
+	wantGateway := "http://localhost:8080"
+	if cfg.GatewayURL != wantGateway {
+		t.Errorf("GatewayURL = %q, want %q", cfg.GatewayURL, wantGateway)
+	}
 }
 
 func TestLoadWithClients(t *testing.T) {
@@ -115,6 +119,64 @@ func TestSaveAndRoundTrip(t *testing.T) {
 	}
 	if loaded.Clients[0].Timeout != 2000 {
 		t.Errorf("Client.Timeout = %v, want 2000", loaded.Clients[0].Timeout)
+	}
+}
+
+func TestLoadWithGatewayURL(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("HOME", dir)
+
+	configDir := filepath.Join(dir, ".config", "agent-pulse")
+	os.MkdirAll(configDir, 0755)
+
+	yaml := `port: 9090
+gateway_url: "http://192.168.1.50:9090"
+`
+	os.WriteFile(filepath.Join(configDir, "config.yaml"), []byte(yaml), 0644)
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	if cfg.GatewayURL != "http://192.168.1.50:9090" {
+		t.Errorf("GatewayURL = %q, want http://192.168.1.50:9090", cfg.GatewayURL)
+	}
+}
+
+func TestLoadGatewayURLDefaultFromPort(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("HOME", dir)
+
+	configDir := filepath.Join(dir, ".config", "agent-pulse")
+	os.MkdirAll(configDir, 0755)
+
+	yaml := `port: 3000
+`
+	os.WriteFile(filepath.Join(configDir, "config.yaml"), []byte(yaml), 0644)
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	if cfg.GatewayURL != "http://localhost:3000" {
+		t.Errorf("GatewayURL = %q, want http://localhost:3000", cfg.GatewayURL)
+	}
+}
+
+func TestLoadInvalidGatewayURL(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("HOME", dir)
+
+	configDir := filepath.Join(dir, ".config", "agent-pulse")
+	os.MkdirAll(configDir, 0755)
+
+	yaml := `gateway_url: "not a url"
+`
+	os.WriteFile(filepath.Join(configDir, "config.yaml"), []byte(yaml), 0644)
+
+	_, err := Load()
+	if err == nil {
+		t.Error("expected error for invalid gateway_url")
 	}
 }
 

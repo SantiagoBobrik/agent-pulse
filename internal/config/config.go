@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 
@@ -17,6 +18,7 @@ const (
 type Config struct {
 	Port        int             `yaml:"port"`
 	BindAddress string          `yaml:"bind_address"`
+	GatewayURL  string          `yaml:"gateway_url,omitempty"`
 	Clients     []client.Client `yaml:"clients,omitempty"`
 }
 
@@ -36,12 +38,12 @@ func Load() (*Config, error) {
 
 	path, err := configPath()
 	if err != nil {
-		return cfg, nil
+		return applyDefaults(cfg)
 	}
 
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return cfg, nil
+		return applyDefaults(cfg)
 	}
 
 	if err := yaml.Unmarshal(data, cfg); err != nil {
@@ -56,6 +58,17 @@ func Load() (*Config, error) {
 		cfg.BindAddress = DefaultBindAddress
 	}
 
+	return applyDefaults(cfg)
+}
+
+func applyDefaults(cfg *Config) (*Config, error) {
+	if cfg.GatewayURL == "" {
+		cfg.GatewayURL = fmt.Sprintf("http://localhost:%d", cfg.Port)
+	} else {
+		if _, err := url.ParseRequestURI(cfg.GatewayURL); err != nil {
+			return nil, fmt.Errorf("invalid gateway_url %q: %w", cfg.GatewayURL, err)
+		}
+	}
 	return cfg, nil
 }
 
