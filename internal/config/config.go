@@ -2,12 +2,12 @@ package config
 
 import (
 	"fmt"
-	"log/slog"
 	"net/url"
 	"os"
 	"path/filepath"
 
 	"github.com/SantiagoBobrik/agent-pulse/internal/client"
+	"github.com/SantiagoBobrik/agent-pulse/internal/logger"
 	"gopkg.in/yaml.v3"
 )
 
@@ -43,7 +43,7 @@ func Load() (*Config, error) {
 		}
 	}
 	if err := cfg.Validate(); err != nil {
-		slog.Error("invalid configuration", "error", err)
+		logger.Error("invalid configuration", "error", err)
 		return nil, err
 	}
 

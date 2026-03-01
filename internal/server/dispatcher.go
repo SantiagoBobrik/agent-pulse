@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"sync"
 	"time"
 
 	"github.com/SantiagoBobrik/agent-pulse/internal/client"
 	"github.com/SantiagoBobrik/agent-pulse/internal/domain"
+	"github.com/SantiagoBobrik/agent-pulse/internal/logger"
 )
 
 type Dispatcher struct {
@@ -25,14 +25,14 @@ func (d *Dispatcher) Dispatch(event domain.Event) {
 	var wg sync.WaitGroup
 	for _, c := range d.clients {
 		if !c.Accepts(event) {
-			slog.Info("client skipped", "name", c.Name, "reason", "event_filtered")
+			logger.Info("client skipped", "name", c.Name, "reason", "event_filtered")
 			continue
 		}
 		wg.Add(1)
 		go func(c client.Client) {
 			defer wg.Done()
 			if err := d.send(c, event); err != nil {
-				slog.Error("client unreachable", "name", c.Name, "error", err)
+				logger.Error("client unreachable", "name", c.Name, "error", err)
 			}
 		}(c)
 	}
@@ -72,6 +72,6 @@ func (d *Dispatcher) send(c client.Client, event domain.Event) error {
 		return fmt.Errorf("client %s returned status %d", c.Name, resp.StatusCode)
 	}
 
-	slog.Info("client ok", "name", c.Name, "status", resp.StatusCode)
+	logger.Info("client ok", "name", c.Name, "status", resp.StatusCode)
 	return nil
 }

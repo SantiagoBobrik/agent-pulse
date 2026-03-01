@@ -2,10 +2,10 @@ package server
 
 import (
 	"encoding/json"
-	"log/slog"
 	"net/http"
 
 	"github.com/SantiagoBobrik/agent-pulse/internal/domain"
+	"github.com/SantiagoBobrik/agent-pulse/internal/logger"
 )
 
 func handleEvent(dispatcher *Dispatcher) http.HandlerFunc {
@@ -25,7 +25,7 @@ func handleEvent(dispatcher *Dispatcher) http.HandlerFunc {
 		if len(eventPayload.Data) > 0 {
 			json.Unmarshal(eventPayload.Data, &data)
 		}
-		slog.Info("event received", "type", eventPayload.Type, "provider", eventPayload.Provider, "data", data)
+		logger.Info("event received", "type", eventPayload.Type, "provider", eventPayload.Provider, "data", data)
 		dispatcher.Dispatch(eventPayload)
 		w.WriteHeader(http.StatusAccepted)
 	}

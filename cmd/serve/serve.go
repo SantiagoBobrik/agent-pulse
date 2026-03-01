@@ -2,12 +2,12 @@ package serve
 
 import (
 	"context"
-	"log/slog"
 	"os/signal"
 	"syscall"
 	"time"
 
 	"github.com/SantiagoBobrik/agent-pulse/internal/config"
+	"github.com/SantiagoBobrik/agent-pulse/internal/logger"
 	"github.com/SantiagoBobrik/agent-pulse/internal/server"
 	"github.com/spf13/cobra"
 )
@@ -37,7 +37,7 @@ var Cmd = &cobra.Command{
 			errCh <- srv.Start()
 		}()
 
-		slog.Info("server started", "addr", port)
+		logger.Info("server started", "addr", port)
 
 		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 		defer stop()
@@ -48,16 +48,16 @@ var Cmd = &cobra.Command{
 		case <-ctx.Done():
 		}
 
-		slog.Info("server shutting down...")
+		logger.Info("server shutting down...")
 
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
 		if err := srv.Shutdown(shutdownCtx); err != nil {
-			slog.Error("shutdown error", "err", err)
+			logger.Error("shutdown error", "err", err)
 		}
 
-		slog.Info("server stopped")
+		logger.Info("server stopped")
 		return nil
 	},
 }
