@@ -56,41 +56,21 @@ func RunWizard(r io.Reader, w io.Writer) (*Client, error) {
 		timeout = parsed
 	}
 
-	providerChoice, err := prompt(scanner, w, "Providers to receive (all / select)")
+	fmt.Fprintln(w, "  Comma-separated values accepted for providers and events.")
+
+	providerChoice, err := prompt(scanner, w, fmt.Sprintf("Providers (%s or all)", strings.Join(allProviders, ",")))
 	if err != nil {
 		return nil, err
 	}
 
-	var providers []string
-	if providerChoice == "select" {
-		for _, p := range allProviders {
-			include, err := prompt(scanner, w, fmt.Sprintf("  Include %s? (y/n)", p))
-			if err != nil {
-				return nil, err
-			}
-			if include == "y" || include == "yes" || include == "" {
-				providers = append(providers, p)
-			}
-		}
-	}
+	providers := parseChoice(providerChoice)
 
-	eventChoice, err := prompt(scanner, w, "Events to receive (all / select)")
+	eventChoice, err := prompt(scanner, w, fmt.Sprintf("Events (%s or all)", strings.Join(allEventTypes, ",")))
 	if err != nil {
 		return nil, err
 	}
 
-	var events []string
-	if eventChoice == "select" {
-		for _, et := range allEventTypes {
-			include, err := prompt(scanner, w, fmt.Sprintf("  Include %s? (y/n)", et))
-			if err != nil {
-				return nil, err
-			}
-			if include == "y" || include == "yes" || include == "" {
-				events = append(events, et)
-			}
-		}
-	}
+	events := parseChoice(eventChoice)
 
 	c := &Client{
 		Name:      name,
@@ -105,6 +85,18 @@ func RunWizard(r io.Reader, w io.Writer) (*Client, error) {
 	}
 
 	return c, nil
+}
+
+func parseChoice(input string) []string {
+	if input == "" || input == "all" {
+		return nil
+	}
+	parts := strings.Split(input, ",")
+	var result []string
+	for _, p := range parts {
+		result = append(result, strings.TrimSpace(p))
+	}
+	return result
 }
 
 func prompt(scanner *bufio.Scanner, w io.Writer, label string) (string, error) {
