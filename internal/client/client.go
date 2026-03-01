@@ -22,11 +22,12 @@ var validEventTypes = map[domain.EventType]bool{
 var namePattern = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_-]*$`)
 
 type Client struct {
-	Name    string            `yaml:"name" json:"name"`
-	URL     string            `yaml:"url" json:"url"`
-	Timeout time.Duration     `yaml:"timeout" json:"timeout"`
-	Events  []string          `yaml:"events,omitempty" json:"events,omitempty"`
-	Headers map[string]string `yaml:"headers,omitempty" json:"headers,omitempty"`
+	Name      string            `yaml:"name" json:"name"`
+	URL       string            `yaml:"url" json:"url"`
+	Timeout   time.Duration     `yaml:"timeout" json:"timeout"`
+	Events    []string          `yaml:"events,omitempty" json:"events,omitempty"`
+	Providers []string          `yaml:"providers,omitempty" json:"providers,omitempty"`
+	Headers   map[string]string `yaml:"headers,omitempty" json:"headers,omitempty"`
 }
 
 func (c *Client) Validate() error {
@@ -63,11 +64,12 @@ func (c *Client) Validate() error {
 	return nil
 }
 
-func (c *Client) Accepts(eventType domain.EventType) bool {
-	if len(c.Events) == 0 {
-		return true
-	}
-	return slices.Contains(c.Events, eventType.String())
+func (c *Client) Accepts(event domain.Event) bool {
+	acceptEvent := len(c.Events) == 0 || slices.Contains(c.Events,
+		event.Type.String())
+	acceptProvider := len(c.Providers) == 0 ||
+		slices.Contains(c.Providers, event.Provider.String())
+	return acceptEvent && acceptProvider
 }
 
 func (c *Client) ResolvedHeaders() map[string]string {

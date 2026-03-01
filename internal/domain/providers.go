@@ -17,3 +17,7 @@ func (p Provider) IsValid() bool {
 	}
 	return false
 }
+
+func (p Provider) String() string {
+	return string(p)
+}

@@ -106,40 +106,77 @@ func TestClientAccepts(t *testing.T) {
 	tests := []struct {
 		name      string
 		events    []string
-		eventType domain.EventType
+		providers []string
+		event     domain.Event
 		want      bool
 	}{
 		{
-			name:      "empty events accepts all",
-			events:    nil,
-			eventType: domain.Events.Stop,
+			name:  "empty events and providers accepts all",
+			event: domain.Event{Type: domain.Events.Stop, Provider: domain.Providers.Claude},
+			want:  true,
+		},
+		{
+			name:   "subscribed event accepted",
+			events: []string{"stop", "notification"},
+			event:  domain.Event{Type: domain.Events.Stop, Provider: domain.Providers.Claude},
+			want:   true,
+		},
+		{
+			name:   "unsubscribed event rejected",
+			events: []string{"stop"},
+			event:  domain.Event{Type: domain.Events.Notification, Provider: domain.Providers.Claude},
+			want:   false,
+		},
+		{
+			name:  "empty events accepts all",
+			event: domain.Event{Type: domain.Events.SessionStart, Provider: domain.Providers.Claude},
+			want:  true,
+		},
+		{
+			name:      "subscribed provider accepted",
+			providers: []string{"claude"},
+			event:     domain.Event{Type: domain.Events.Stop, Provider: domain.Providers.Claude},
 			want:      true,
 		},
 		{
-			name:      "subscribed event accepted",
-			events:    []string{"stop", "notification"},
-			eventType: domain.Events.Stop,
-			want:      true,
-		},
-		{
-			name:      "unsubscribed event rejected",
-			events:    []string{"stop"},
-			eventType: domain.Events.Notification,
+			name:      "unsubscribed provider rejected",
+			providers: []string{"claude"},
+			event:     domain.Event{Type: domain.Events.Stop, Provider: domain.Providers.Gemini},
 			want:      false,
 		},
 		{
-			name:      "empty slice accepts all",
-			events:    []string{},
-			eventType: domain.Events.SessionStart,
+			name:  "empty providers accepts all providers",
+			event: domain.Event{Type: domain.Events.Stop, Provider: domain.Providers.Gemini},
+			want:  true,
+		},
+		{
+			name:      "both filters match",
+			events:    []string{"stop"},
+			providers: []string{"claude"},
+			event:     domain.Event{Type: domain.Events.Stop, Provider: domain.Providers.Claude},
 			want:      true,
+		},
+		{
+			name:      "event matches but provider does not",
+			events:    []string{"stop"},
+			providers: []string{"claude"},
+			event:     domain.Event{Type: domain.Events.Stop, Provider: domain.Providers.Gemini},
+			want:      false,
+		},
+		{
+			name:      "provider matches but event does not",
+			events:    []string{"stop"},
+			providers: []string{"claude"},
+			event:     domain.Event{Type: domain.Events.Notification, Provider: domain.Providers.Claude},
+			want:      false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := &Client{Events: tt.events}
-			if got := c.Accepts(tt.eventType); got != tt.want {
-				t.Errorf("Accepts(%q) = %v, want %v", tt.eventType, got, tt.want)
+			c := &Client{Events: tt.events, Providers: tt.providers}
+			if got := c.Accepts(tt.event); got != tt.want {
+				t.Errorf("Accepts(%v) = %v, want %v", tt.event, got, tt.want)
 			}
 		})
 	}

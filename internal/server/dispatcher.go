@@ -24,7 +24,7 @@ func NewDispatcher(clients []client.Client) *Dispatcher {
 func (d *Dispatcher) Dispatch(event domain.Event) {
 	var wg sync.WaitGroup
 	for _, c := range d.clients {
-		if !c.Accepts(event.Type) {
+		if !c.Accepts(event) {
 			slog.Info("client skipped", "name", c.Name, "reason", "event_filtered")
 			continue
 		}

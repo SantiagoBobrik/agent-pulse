@@ -4,7 +4,7 @@
       {
         "hooks": [
           {
-            "command": "agent-pulse hook notification",
+            "command": "agent-pulse hook --provider claude --event notification",
             "type": "command"
           }
         ]
@@ -14,7 +14,7 @@
       {
         "hooks": [
           {
-            "command": "agent-pulse hook session_end",
+            "command": "agent-pulse hook --provider claude --event session_end",
             "type": "command"
           }
         ]
@@ -24,7 +24,7 @@
       {
         "hooks": [
           {
-            "command": "agent-pulse hook session_start",
+            "command": "agent-pulse hook --provider claude --event session_start",
             "type": "command"
           }
         ]
@@ -34,7 +34,7 @@
       {
         "hooks": [
           {
-            "command": "agent-pulse hook stop",
+            "command": "agent-pulse hook --provider claude --event stop",
             "type": "command"
           }
         ]
