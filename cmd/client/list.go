@@ -25,13 +25,17 @@ var listCmd = &cobra.Command{
 		}
 
 		w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-		fmt.Fprintln(w, "NAME\tURL\tTIMEOUT\tEVENTS")
+		fmt.Fprintln(w, "NAME\tURL\tTIMEOUT\tEVENTS\tPROVIDERS")
 		for _, c := range cfg.Clients {
 			events := "all"
 			if len(c.Events) > 0 {
 				events = strings.Join(c.Events, ",")
 			}
-			fmt.Fprintf(w, "%s\t%s\t%dms\t%s\n", c.Name, c.URL, c.Timeout, events)
+			providers := "all"
+			if len(c.Providers) > 0 {
+				providers = strings.Join(c.Providers, ",")
+			}
+			fmt.Fprintf(w, "%s\t%s\t%dms\t%s\t%s\n", c.Name, c.URL, c.Timeout, events, providers)
 		}
 		w.Flush()
 
