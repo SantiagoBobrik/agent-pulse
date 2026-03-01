@@ -5,43 +5,43 @@
 
 ## Commands
 
-### `claude-pulse`
+### `agent-pulse`
 
 Root command. Displays help/usage when run without subcommands.
 
 ```
 Usage:
-  claude-pulse [command]
+  agent-pulse [command]
 
 Available Commands:
   setup       Configure Claude Code hooks for the current project
   serve       Start the event bridge server
 
 Flags:
-  -h, --help   help for claude-pulse
+  -h, --help   help for agent-pulse
 
-Use "claude-pulse [command] --help" for more information about a command.
+Use "agent-pulse [command] --help" for more information about a command.
 ```
 
-### `claude-pulse setup`
+### `agent-pulse setup`
 
-Configures the current project's `.claude/settings.json` with hooks that send lifecycle events to the claude-pulse server.
+Configures the current project's `.claude/settings.json` with hooks that send lifecycle events to the agent-pulse server.
 
 **Behavior**:
 1. Reads `.claude/settings.json` (creates file and directory if missing)
-2. Merges claude-pulse hooks into the `hooks` key
+2. Merges agent-pulse hooks into the `hooks` key
 3. Preserves all existing settings and unrelated hooks
 4. Writes updated settings back
 
 **Output**:
-- Success: `claude-pulse hooks configured in .claude/settings.json`
+- Success: `agent-pulse hooks configured in .claude/settings.json`
 - Error (invalid JSON): `error: .claude/settings.json contains invalid JSON`
 
 **Exit codes**:
 - `0` — success
 - `1` — error (file read/write failure, invalid JSON)
 
-### `claude-pulse serve`
+### `agent-pulse serve`
 
 Starts the HTTP/WebSocket server.
 
@@ -49,7 +49,7 @@ Starts the HTTP/WebSocket server.
 - `--port, -p` (int, default: from config or 8080) — server listen port
 
 **Behavior**:
-1. Loads config from `~/.config/claude-pulse/config.yaml`
+1. Loads config from `~/.config/agent-pulse/config.yaml`
 2. Starts HTTP server on configured port
 3. Listens for events on `POST /event`
 4. Broadcasts events to connected WebSocket clients
@@ -57,10 +57,10 @@ Starts the HTTP/WebSocket server.
 
 **Output**:
 ```
-[claude-pulse] server started on :8080
-[claude-pulse] event received              type=session_start
-[claude-pulse] broadcast to 2 client(s)    type=session_start
-[claude-pulse] server shutting down...
+[agent-pulse] server started on :8080
+[agent-pulse] event received              type=session_start
+[agent-pulse] broadcast to 2 client(s)    type=session_start
+[agent-pulse] server shutting down...
 ```
 
 **Exit codes**:
@@ -69,5 +69,5 @@ Starts the HTTP/WebSocket server.
 
 **Error: port in use**:
 ```
-error: port 8080 is already in use. Change the port in ~/.config/claude-pulse/config.yaml
+error: port 8080 is already in use. Change the port in ~/.config/agent-pulse/config.yaml
 ```

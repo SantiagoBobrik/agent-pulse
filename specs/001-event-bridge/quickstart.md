@@ -12,13 +12,13 @@
 
 ```bash
 # Build
-go build -o claude-pulse .
+go build -o agent-pulse .
 
 # Setup in a project (run from project root)
-./claude-pulse setup
+./agent-pulse setup
 
 # Start server manually (normally auto-started by hooks)
-./claude-pulse serve
+./agent-pulse serve
 ```
 
 ## Verify Setup
@@ -35,7 +35,7 @@ You should see `SessionStart`, `Stop`, and `Notification` hook entries.
 
 ```bash
 # Terminal 1: Start server
-./claude-pulse serve
+./agent-pulse serve
 
 # Terminal 2: Connect a WebSocket client
 websocat ws://localhost:8080/ws
@@ -53,7 +53,7 @@ The WebSocket client in Terminal 2 should receive the event.
 ```bash
 curl -X POST http://localhost:8080/event \
   -H 'Content-Type: application/json' \
-  -d '{"type":"notification","extra":{"message":"Claude needs attention","notification_type":"permission_prompt"}}'
+  -d '{"type":"notification","data":{"message":"Claude needs attention","notification_type":"permission_prompt"}}'
 ```
 
 ## Health Check
@@ -65,7 +65,7 @@ curl http://localhost:8080/health
 
 ## Configuration
 
-Default config location: `~/.config/claude-pulse/config.yaml`
+Default config location: `~/.config/agent-pulse/config.yaml`
 
 ```yaml
 port: 8080

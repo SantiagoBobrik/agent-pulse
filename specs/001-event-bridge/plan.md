@@ -5,13 +5,13 @@
 
 ## Summary
 
-Build claude-pulse, a Go CLI tool that bridges Claude Code lifecycle events to physical hardware. The system has two commands: `setup` (configures Claude Code hooks in a project) and `serve` (runs an HTTP server that receives events and broadcasts them to WebSocket-connected devices). The server auto-starts via hooks, requires zero manual maintenance, and supports device-agnostic connections.
+Build agent-pulse, a Go CLI tool that bridges Claude Code lifecycle events to physical hardware. The system has two commands: `setup` (configures Claude Code hooks in a project) and `serve` (runs an HTTP server that receives events and broadcasts them to WebSocket-connected devices). The server auto-starts via hooks, requires zero manual maintenance, and supports device-agnostic connections.
 
 ## Technical Context
 
 **Language/Version**: Go 1.24+
 **Primary Dependencies**: cobra (CLI), chi (HTTP router), gorilla/websocket (WebSocket), slog (structured logging), gopkg.in/yaml.v3 (config)
-**Storage**: YAML config file at `~/.config/claude-pulse/config.yaml` (no database)
+**Storage**: YAML config file at `~/.config/agent-pulse/config.yaml` (no database)
 **Testing**: Go table-driven tests, `httptest` for HTTP handlers, gorilla test utilities for WebSocket
 **Target Platform**: macOS (primary), Linux (secondary). Single binary distribution.
 **Project Type**: CLI tool + background server

@@ -1,5 +1,5 @@
 # Binary
-claude-pulse
+agent-pulse
 *.exe
 *.test
 *.out
@@ -22,3 +22,4 @@ Thumbs.db
 
 # Environment
 .env*
+

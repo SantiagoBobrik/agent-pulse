@@ -13,9 +13,9 @@
 
 **Purpose**: Initialize Go project and CLI skeleton
 
-- [x] T001 Initialize Go module — run `go mod init github.com/santiagodiaz/claude-pulse`, add dependencies: `github.com/spf13/cobra`, `github.com/go-chi/chi/v5`, `github.com/gorilla/websocket`, `gopkg.in/yaml.v3` in go.mod
+- [x] T001 Initialize Go module — run `go mod init github.com/santiagodiaz/agent-pulse`, add dependencies: `github.com/spf13/cobra`, `github.com/go-chi/chi/v5`, `github.com/gorilla/websocket`, `gopkg.in/yaml.v3` in go.mod
 - [x] T002 [P] Create entry point in main.go — import `cmd` package, call `cmd.Execute()`, exit with code 1 on error
-- [x] T003 [P] Create root cobra command in cmd/root.go — define `rootCmd` with Use: "claude-pulse", Short/Long descriptions per CLI contract, `Execute()` function that returns error. No `Run` func (shows help by default)
+- [x] T003 [P] Create root cobra command in cmd/root.go — define `rootCmd` with Use: "agent-pulse", Short/Long descriptions per CLI contract, `Execute()` function that returns error. No `Run` func (shows help by default)
 
 ---
 
@@ -23,7 +23,7 @@
 
 **Purpose**: Shared config infrastructure used by both `setup` and `serve` commands
 
-- [x] T004 Implement config loading in internal/config/config.go — define `Config` struct with `Port int` field (yaml tag `port`), `Load()` function reads `~/.config/claude-pulse/config.yaml`, returns defaults (port 8080) if file missing, validate port range 1024-65535, use `gopkg.in/yaml.v3` for parsing
+- [x] T004 Implement config loading in internal/config/config.go — define `Config` struct with `Port int` field (yaml tag `port`), `Load()` function reads `~/.config/agent-pulse/config.yaml`, returns defaults (port 8080) if file missing, validate port range 1024-65535, use `gopkg.in/yaml.v3` for parsing
 
 **Checkpoint**: Foundation ready — user story implementation can begin
 
@@ -31,16 +31,16 @@
 
 ## Phase 3: User Story 1 - One-Time Project Setup (Priority: P1) 🎯 MVP
 
-**Goal**: Developer runs `claude-pulse setup` in a project directory and Claude Code hooks are configured automatically.
+**Goal**: Developer runs `agent-pulse setup` in a project directory and Claude Code hooks are configured automatically.
 
 **Independent Test**: Run setup in a temp directory, verify `.claude/settings.json` contains correct hook entries. Run again and verify idempotency. Run with existing unrelated settings and verify preservation.
 
 ### Implementation for User Story 1
 
 - [x] T005 [US1] Implement hook generation and JSON merge in internal/hooks/setup.go — `Setup(dir string, port int) error` function that: (1) generates hook command strings with the configured port per hooks contract (SessionStart with health check + auto-start, Stop with static JSON, Notification with jq pipe), (2) reads `.claude/settings.json` using `map[string]interface{}` for generic merge, (3) creates `.claude/` directory if missing, (4) creates settings file if missing (start with empty map), (5) returns error on invalid JSON (don't overwrite), (6) merges/replaces `hooks.SessionStart`, `hooks.Stop`, `hooks.Notification` keys preserving all other settings, (7) writes back with `json.MarshalIndent` 2-space indent + trailing newline
-- [x] T006 [US1] Implement setup cobra command in cmd/setup.go — define `setupCmd` with Use: "setup", Short: "Configure Claude Code hooks for the current project", `RunE` that: (1) loads config via `config.Load()` to get port, (2) gets current working directory, (3) calls `hooks.Setup(cwd, config.Port)`, (4) prints success message: "claude-pulse hooks configured in .claude/settings.json", (5) on error prints "error: " + message and returns error. Add to rootCmd via `init()`
+- [x] T006 [US1] Implement setup cobra command in cmd/setup.go — define `setupCmd` with Use: "setup", Short: "Configure Claude Code hooks for the current project", `RunE` that: (1) loads config via `config.Load()` to get port, (2) gets current working directory, (3) calls `hooks.Setup(cwd, config.Port)`, (4) prints success message: "agent-pulse hooks configured in .claude/settings.json", (5) on error prints "error: " + message and returns error. Add to rootCmd via `init()`
 
-**Checkpoint**: `claude-pulse setup` works end-to-end. MVP is functional for configuring projects.
+**Checkpoint**: `agent-pulse setup` works end-to-end. MVP is functional for configuring projects.
 
 ---
 
@@ -48,14 +48,14 @@
 
 **Goal**: Server receives events via HTTP and broadcasts to WebSocket-connected devices. Server starts/stops cleanly with signal handling and port-in-use detection.
 
-**Independent Test**: Start server with `claude-pulse serve`, connect a WebSocket client (e.g., `websocat ws://localhost:8080/ws`), send `curl -X POST localhost:8080/event -d '{"type":"session_start"}'`, verify client receives the event. Send SIGINT, verify clean shutdown.
+**Independent Test**: Start server with `agent-pulse serve`, connect a WebSocket client (e.g., `websocat ws://localhost:8080/ws`), send `curl -X POST localhost:8080/event -d '{"type":"session_start"}'`, verify client receives the event. Send SIGINT, verify clean shutdown.
 
 ### Implementation
 
-- [x] T007 [P] [US3] Define Event types and POST /event handler in internal/server/handler.go — define `Event` struct with `Type string` and `Extra json.RawMessage` fields (json tags: `type`, `extra`), define valid event types as constants (`session_start`, `stop`, `notification`), implement `handleEvent(hub *Hub) http.HandlerFunc` that: (1) decodes JSON body, (2) validates `Type` is one of the three allowed values, (3) marshals event back to JSON bytes, (4) sends to `hub.broadcast` channel, (5) returns 202 Accepted on success, 400 Bad Request on invalid JSON or unknown type
+- [x] T007 [P] [US3] Define Event types and POST /event handler in internal/server/handler.go — define `Event` struct with `Type string` and `Data json.RawMessage` fields (json tags: `type`, `data`), define valid event types as constants (`session_start`, `stop`, `notification`), implement `handleEvent(hub *Hub) http.HandlerFunc` that: (1) decodes JSON body, (2) validates `Type` is one of the three allowed values, (3) marshals event back to JSON bytes, (4) sends to `hub.broadcast` channel, (5) returns 202 Accepted on success, 400 Bad Request on invalid JSON or unknown type
 - [x] T008 [P] [US3] Implement WebSocket Hub and Client in internal/server/websocket.go — define `Hub` struct with `clients map[*Client]bool`, `register/unregister/broadcast` channels, `run()` method as select loop (register adds client, unregister removes + closes send channel, broadcast iterates clients with non-blocking send — full buffer means dead client, remove it). Define `Client` struct with `hub *Hub`, `conn *websocket.Conn`, `send chan []byte` (buffered 256). Implement `readPump()`: reads messages in loop (only to detect disconnect), defers `hub.unregister` and `conn.Close()`. Implement `writePump()`: reads from `send` channel, writes text message to conn. Implement `serveWs(hub *Hub) http.HandlerFunc`: upgrades HTTP to WebSocket with `CheckOrigin: func(r *http.Request) bool { return true }`, creates Client, registers with hub, starts readPump and writePump as goroutines. Export `NewHub()` constructor and `Hub.Run()`, `Hub.Shutdown()` methods
-- [x] T009 [US3] [US2] Implement HTTP server in internal/server/server.go — define `Server` struct wrapping `*http.Server` and `*Hub`. `NewServer(hub *Hub, port int) *Server`: creates chi router, adds `middleware.Heartbeat("/health")`, `middleware.Recoverer`, adds `POST /event` route with `handleEvent(hub)`, adds `GET /ws` route with `serveWs(hub)`, sets `Addr: fmt.Sprintf(":%d", port)`, sets `ReadHeaderTimeout: 5*time.Second`. `Start() error`: calls `ListenAndServe`, returns error (detect port-in-use: if error contains "address already in use", return formatted error: `fmt.Errorf("port %d is already in use. Change the port in ~/.config/claude-pulse/config.yaml", port)`). `Shutdown(ctx context.Context) error`: calls `hub.Shutdown()` to close all WebSocket connections, then calls `http.Server.Shutdown(ctx)`
-- [x] T010 [US3] [US2] Implement serve cobra command in cmd/serve.go — define `serveCmd` with Use: "serve", Short: "Start the event bridge server", add `--port/-p` int flag (default 0, meaning "use config"). `RunE`: (1) load config, (2) override port if flag set, (3) create Hub with `NewHub()`, (4) `go hub.Run()`, (5) create Server with `NewServer(hub, port)`, (6) start server in goroutine, (7) log `[claude-pulse] server started on :%d`, (8) set up `signal.NotifyContext` for SIGINT/SIGTERM, (9) wait for context done, (10) log `[claude-pulse] server shutting down...`, (11) create 5s timeout context, (12) call `server.Shutdown(ctx)`, (13) log `[claude-pulse] server stopped`. Use `slog` for all logging. Add to rootCmd via `init()`
+- [x] T009 [US3] [US2] Implement HTTP server in internal/server/server.go — define `Server` struct wrapping `*http.Server` and `*Hub`. `NewServer(hub *Hub, port int) *Server`: creates chi router, adds `middleware.Heartbeat("/health")`, `middleware.Recoverer`, adds `POST /event` route with `handleEvent(hub)`, adds `GET /ws` route with `serveWs(hub)`, sets `Addr: fmt.Sprintf(":%d", port)`, sets `ReadHeaderTimeout: 5*time.Second`. `Start() error`: calls `ListenAndServe`, returns error (detect port-in-use: if error contains "address already in use", return formatted error: `fmt.Errorf("port %d is already in use. Change the port in ~/.config/agent-pulse/config.yaml", port)`). `Shutdown(ctx context.Context) error`: calls `hub.Shutdown()` to close all WebSocket connections, then calls `http.Server.Shutdown(ctx)`
+- [x] T010 [US3] [US2] Implement serve cobra command in cmd/serve.go — define `serveCmd` with Use: "serve", Short: "Start the event bridge server", add `--port/-p` int flag (default 0, meaning "use config"). `RunE`: (1) load config, (2) override port if flag set, (3) create Hub with `NewHub()`, (4) `go hub.Run()`, (5) create Server with `NewServer(hub, port)`, (6) start server in goroutine, (7) log `[agent-pulse] server started on :%d`, (8) set up `signal.NotifyContext` for SIGINT/SIGTERM, (9) wait for context done, (10) log `[agent-pulse] server shutting down...`, (11) create 5s timeout context, (12) call `server.Shutdown(ctx)`, (13) log `[agent-pulse] server stopped`. Use `slog` for all logging. Add to rootCmd via `init()`
 
 **Checkpoint**: Full event pipeline works. `setup` + `serve` + WebSocket client demonstrates the core product. US2 auto-lifecycle is implicitly implemented by US1's hooks + this phase's server.
 
@@ -79,11 +79,11 @@
 
 **Goal**: Binary builds cleanly and CLI displays helpful usage information.
 
-**Independent Test**: Run `go build -o claude-pulse .`, verify binary exists. Run `./claude-pulse` and verify help output. Run `./claude-pulse setup --help` and `./claude-pulse serve --help`.
+**Independent Test**: Run `go build -o agent-pulse .`, verify binary exists. Run `./agent-pulse` and verify help output. Run `./agent-pulse setup --help` and `./agent-pulse serve --help`.
 
 ### Implementation
 
-- [x] T012 [US5] Verify build and CLI help output — run `go build -o claude-pulse .`, verify binary produces help matching CLI contract when run without args, verify `setup` and `serve` subcommands appear in help, verify `--help` flags work for each subcommand. Add version information: set `rootCmd.Version` to a build-time variable using `-ldflags`
+- [x] T012 [US5] Verify build and CLI help output — run `go build -o agent-pulse .`, verify binary produces help matching CLI contract when run without args, verify `setup` and `serve` subcommands appear in help, verify `--help` flags work for each subcommand. Add version information: set `rootCmd.Version` to a build-time variable using `-ldflags`
 
 **Checkpoint**: Binary is ready for distribution.
 
@@ -93,7 +93,7 @@
 
 **Purpose**: Edge cases, logging consistency, and final hardening
 
-- [x] T013 [P] Add consistent structured logging with slog across internal/server/ — ensure all log lines use `slog.Info`/`slog.Error` with key-value attrs: server start (port), event received (type), broadcast (type, client_count), client connect, client disconnect, shutdown. Use `[claude-pulse]` prefix via slog handler or group. Match log format from CLI contract
+- [x] T013 [P] Add consistent structured logging with slog across internal/server/ — ensure all log lines use `slog.Info`/`slog.Error` with key-value attrs: server start (port), event received (type), broadcast (type, client_count), client connect, client disconnect, shutdown. Use `[agent-pulse]` prefix via slog handler or group. Match log format from CLI contract
 - [x] T014 [P] Handle edge cases across codebase — (1) internal/server/websocket.go: malformed WebSocket frames close the connection gracefully (readPump already handles via read error), (2) internal/server/handler.go: events with no connected clients are accepted (202) and broadcast to empty client set (no-op in Hub), (3) internal/hooks/setup.go: invalid settings.json returns descriptive error "error: .claude/settings.json contains invalid JSON" without overwriting the file
 
 ---
@@ -155,7 +155,7 @@ Task: "Implement serve cobra command in cmd/serve.go"
 1. Complete Phase 1: Setup (T001-T003)
 2. Complete Phase 2: Foundational (T004)
 3. Complete Phase 3: US1 - Setup Command (T005-T006)
-4. **STOP and VALIDATE**: Run `claude-pulse setup` in a test project, verify `.claude/settings.json`
+4. **STOP and VALIDATE**: Run `agent-pulse setup` in a test project, verify `.claude/settings.json`
 5. This alone is useful — hooks are configured, ready for when server is built
 
 ### Core Product (US1 + US3 + US2)

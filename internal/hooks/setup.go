@@ -3,11 +3,12 @@ package hooks
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 )
 
-func Setup(dir string, port int) error {
+func Setup(dir string) error {
 	claudeDir := filepath.Join(dir, ".claude")
 	settingsPath := filepath.Join(claudeDir, "settings.json")
 
@@ -26,15 +27,13 @@ func Setup(dir string, port int) error {
 		return fmt.Errorf("cannot read .claude/settings.json: %w", err)
 	}
 
-	hooks := buildHooks(port)
+	hooks := buildHooks()
 
 	existingHooks, _ := settings["hooks"].(map[string]any)
 	if existingHooks == nil {
 		existingHooks = make(map[string]any)
 	}
-	for k, v := range hooks {
-		existingHooks[k] = v
-	}
+	maps.Copy(existingHooks, hooks)
 	settings["hooks"] = existingHooks
 
 	out, err := json.MarshalIndent(settings, "", "  ")
@@ -49,24 +48,7 @@ func Setup(dir string, port int) error {
 	return nil
 }
 
-func buildHooks(port int) map[string]any {
-	base := fmt.Sprintf("http://localhost:%d", port)
-
-	sessionStartCmd := fmt.Sprintf(
-		`curl -sf %s/health > /dev/null 2>&1 || (claude-pulse serve > /dev/null 2>&1 &); sleep 1; curl -sf -X POST %s/event -H 'Content-Type: application/json' -d '{"type":"session_start"}'`,
-		base, base,
-	)
-
-	stopCmd := fmt.Sprintf(
-		`curl -sf -X POST %s/event -H 'Content-Type: application/json' -d '{"type":"stop"}'`,
-		base,
-	)
-
-	notificationCmd := fmt.Sprintf(
-		`jq -c '{type:"notification",extra:{message:.message,notification_type:.notification_type}}' | curl -sf -X POST %s/event -H 'Content-Type: application/json' -d @-`,
-		base,
-	)
-
+func buildHooks() map[string]any {
 	hookEntry := func(command string) []any {
 		return []any{
 			map[string]any{
@@ -81,8 +63,9 @@ func buildHooks(port int) map[string]any {
 	}
 
 	return map[string]any{
-		"SessionStart": hookEntry(sessionStartCmd),
-		"Stop":         hookEntry(stopCmd),
-		"Notification": hookEntry(notificationCmd),
+		"SessionStart": hookEntry("agent-pulse hook session_start"),
+		"SessionEnd":   hookEntry("agent-pulse hook session_end"),
+		"Stop":         hookEntry("agent-pulse hook stop"),
+		"Notification": hookEntry("agent-pulse hook notification"),
 	}
 }

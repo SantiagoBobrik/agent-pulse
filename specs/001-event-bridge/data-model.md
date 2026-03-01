@@ -12,19 +12,19 @@ An event received from Claude Code hooks and broadcast to connected devices.
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | type  | string (enum) | yes | One of: `session_start`, `stop`, `notification` |
-| extra | object | no | Event-type-specific data. Absent for `session_start` and `stop`. |
+| data  | object | no | Event-type-specific data. Absent for `session_start` and `stop`. |
 
-**Extra fields by event type**:
+**Data fields by event type**:
 
-| Event Type | Extra Field | Type | Description |
+| Event Type | Data Field | Type | Description |
 |------------|-------------|------|-------------|
 | `notification` | `message` | string | Human-readable notification message |
 | `notification` | `notification_type` | string | One of: `permission_prompt`, `idle_prompt`, `auth_success`, `elicitation_dialog` |
 
 **Validation rules**:
 - `type` must be one of the three allowed values
-- `extra` is ignored for `session_start` and `stop`
-- For `notification`, at least `message` must be present in `extra`
+- `data` is ignored for `session_start` and `stop`
+- For `notification`, at least `message` must be present in `data`
 
 ### Client
 
@@ -51,13 +51,13 @@ A WebSocket connection tracked by the server's client pool.
 
 ### Configuration
 
-User settings for the claude-pulse server.
+User settings for the agent-pulse server.
 
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
 | port | integer | no | 8080 | Server listen port |
 
-**Storage**: YAML file at `~/.config/claude-pulse/config.yaml`
+**Storage**: YAML file at `~/.config/agent-pulse/config.yaml`
 
 **Validation rules**:
 - `port` must be between 1024 and 65535

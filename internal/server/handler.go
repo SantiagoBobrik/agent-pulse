@@ -4,48 +4,29 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+
+	"github.com/SantiagoBobrik/agent-pulse/internal/domain"
 )
 
-const (
-	EventSessionStart = "session_start"
-	EventStop         = "stop"
-	EventNotification = "notification"
-)
-
-type Event struct {
-	Type  string          `json:"type"`
-	Extra json.RawMessage `json:"extra,omitempty"`
-}
-
-func isValidEventType(t string) bool {
-	switch t {
-	case EventSessionStart, EventStop, EventNotification:
-		return true
-	}
-	return false
-}
-
-func handleEvent(hub *Hub) http.HandlerFunc {
+func handleEvent(dispatcher *Dispatcher) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var event Event
-		if err := json.NewDecoder(r.Body).Decode(&event); err != nil {
+		var eventPayload domain.Event
+		if err := json.NewDecoder(r.Body).Decode(&eventPayload); err != nil {
 			http.Error(w, "invalid JSON", http.StatusBadRequest)
 			return
 		}
 
-		if !isValidEventType(event.Type) {
+		if !eventPayload.Type.IsValid() {
 			http.Error(w, "unknown event type", http.StatusBadRequest)
 			return
 		}
 
-		data, err := json.Marshal(event)
-		if err != nil {
-			http.Error(w, "internal error", http.StatusInternalServerError)
-			return
+		var data map[string]any
+		if len(eventPayload.Data) > 0 {
+			json.Unmarshal(eventPayload.Data, &data)
 		}
-
-		slog.Info("event received", "type", event.Type)
-		hub.broadcast <- data
+		slog.Info("event received", "type", eventPayload.Type, "data", data)
+		dispatcher.Dispatch(eventPayload)
 		w.WriteHeader(http.StatusAccepted)
 	}
 }

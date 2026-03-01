@@ -5,26 +5,40 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/SantiagoBobrik/agent-pulse/internal/client"
 	"gopkg.in/yaml.v3"
 )
 
 const (
-	DefaultPort = 8080
+	DefaultPort        = 8080
+	DefaultBindAddress = "127.0.0.1"
 )
 
 type Config struct {
-	Port int `yaml:"port"`
+	Port        int             `yaml:"port"`
+	BindAddress string          `yaml:"bind_address"`
+	Clients     []client.Client `yaml:"clients,omitempty"`
+}
+
+func configPath() (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(home, ".config", "agent-pulse", "config.yaml"), nil
 }
 
 func Load() (*Config, error) {
-	cfg := &Config{Port: DefaultPort}
+	cfg := &Config{
+		Port:        DefaultPort,
+		BindAddress: DefaultBindAddress,
+	}
 
-	home, err := os.UserHomeDir()
+	path, err := configPath()
 	if err != nil {
 		return cfg, nil
 	}
 
-	path := filepath.Join(home, ".config", "claude-pulse", "config.yaml")
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return cfg, nil
@@ -38,5 +52,32 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("port must be between 1024 and 65535, got %d", cfg.Port)
 	}
 
+	if cfg.BindAddress == "" {
+		cfg.BindAddress = DefaultBindAddress
+	}
+
 	return cfg, nil
+}
+
+func Save(cfg *Config) error {
+	path, err := configPath()
+	if err != nil {
+		return fmt.Errorf("cannot determine config path: %w", err)
+	}
+
+	dir := filepath.Dir(path)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("cannot create config directory: %w", err)
+	}
+
+	data, err := yaml.Marshal(cfg)
+	if err != nil {
+		return fmt.Errorf("cannot marshal config: %w", err)
+	}
+
+	if err := os.WriteFile(path, data, 0644); err != nil {
+		return fmt.Errorf("cannot write config: %w", err)
+	}
+
+	return nil
 }

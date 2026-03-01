@@ -12,27 +12,26 @@ import (
 )
 
 type Server struct {
-	http *http.Server
-	hub  *Hub
-	port int
+	http       *http.Server
+	dispatcher *Dispatcher
+	port       int
 }
 
-func NewServer(hub *Hub, port int) *Server {
+func NewServer(dispatcher *Dispatcher, port int, bindAddress string) *Server {
 	r := chi.NewRouter()
 	r.Use(middleware.Heartbeat("/health"))
 	r.Use(middleware.Recoverer)
 
-	r.Post("/event", handleEvent(hub))
-	r.Get("/ws", serveWs(hub))
+	r.Post("/event", handleEvent(dispatcher))
 
 	return &Server{
 		http: &http.Server{
-			Addr:              fmt.Sprintf(":%d", port),
+			Addr:              fmt.Sprintf("%s:%d", bindAddress, port),
 			Handler:           r,
 			ReadHeaderTimeout: 5 * time.Second,
 		},
-		hub:  hub,
-		port: port,
+		dispatcher: dispatcher,
+		port:       port,
 	}
 }
 
@@ -40,7 +39,7 @@ func (s *Server) Start() error {
 	err := s.http.ListenAndServe()
 	if err != nil && err != http.ErrServerClosed {
 		if strings.Contains(err.Error(), "address already in use") {
-			return fmt.Errorf("port %d is already in use. Change the port in ~/.config/claude-pulse/config.yaml", s.port)
+			return fmt.Errorf("port %d is already in use. Change the port in ~/.config/agent-pulse/config.yaml", s.port)
 		}
 		return err
 	}
@@ -48,6 +47,5 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) Shutdown(ctx context.Context) error {
-	s.hub.Shutdown()
 	return s.http.Shutdown(ctx)
 }

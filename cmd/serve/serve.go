@@ -1,4 +1,4 @@
-package cmd
+package serve
 
 import (
 	"context"
@@ -7,14 +7,15 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/SantiagoBobrik/claude-pulse/internal/config"
-	"github.com/SantiagoBobrik/claude-pulse/internal/server"
+	"github.com/SantiagoBobrik/agent-pulse/internal/config"
+	"github.com/SantiagoBobrik/agent-pulse/internal/server"
 	"github.com/spf13/cobra"
 )
 
 var portFlag int
 
-var serveCmd = &cobra.Command{
+// Cmd is the serve command.
+var Cmd = &cobra.Command{
 	Use:   "serve",
 	Short: "Start the event bridge server",
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -28,10 +29,8 @@ var serveCmd = &cobra.Command{
 			port = portFlag
 		}
 
-		hub := server.NewHub()
-		go hub.Run()
-
-		srv := server.NewServer(hub, port)
+		dispatcher := server.NewDispatcher(cfg.Clients)
+		srv := server.NewServer(dispatcher, port, cfg.BindAddress)
 
 		errCh := make(chan error, 1)
 		go func() {
@@ -64,6 +63,5 @@ var serveCmd = &cobra.Command{
 }
 
 func init() {
-	serveCmd.Flags().IntVarP(&portFlag, "port", "p", 0, "server listen port (overrides config)")
-	rootCmd.AddCommand(serveCmd)
+	Cmd.Flags().IntVarP(&portFlag, "port", "p", 0, "server listen port (overrides config)")
 }

@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/SantiagoBobrik/claude-pulse/cmd"
+	"github.com/SantiagoBobrik/agent-pulse/cmd"
 )
 
 func main() {

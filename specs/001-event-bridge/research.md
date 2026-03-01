@@ -62,9 +62,9 @@
 
 **Key findings**:
 - All hooks receive: `session_id`, `transcript_path`, `cwd`, `hook_event_name`
-- **SessionStart** extra: `source` (startup/resume/clear/compact), `model`
-- **Stop** extra: `stop_hook_active` (bool), `last_assistant_message` (string — but we're not using this per clarification)
-- **Notification** extra: `message`, `title`, `notification_type` (permission_prompt/idle_prompt/auth_success/elicitation_dialog)
+- **SessionStart** data: `source` (startup/resume/clear/compact), `model`
+- **Stop** data: `stop_hook_active` (bool), `last_assistant_message` (string — but we're not using this per clarification)
+- **Notification** data: `message`, `title`, `notification_type` (permission_prompt/idle_prompt/auth_success/elicitation_dialog)
 - Exit code 0 = success, exit code 2 = blocking error
 - Hooks snapshot at Claude Code startup — changes require restart
 

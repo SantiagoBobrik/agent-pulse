@@ -23,7 +23,7 @@ Receives lifecycle events from Claude Code hooks.
 ```json
 {
   "type": "session_start | stop | notification",
-  "extra": {}
+  "data": {}
 }
 ```
 
@@ -47,7 +47,7 @@ Receives lifecycle events from Claude Code hooks.
 ```json
 {
   "type": "notification",
-  "extra": {
+  "data": {
     "message": "Claude needs your attention",
     "notification_type": "permission_prompt"
   }
@@ -71,7 +71,7 @@ WebSocket endpoint for devices to connect and receive events.
 ```json
 {
   "type": "notification",
-  "extra": {
+  "data": {
     "message": "Claude needs your attention",
     "notification_type": "permission_prompt"
   }
