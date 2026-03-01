@@ -7,7 +7,6 @@ import (
 	"regexp"
 	"slices"
 	"strings"
-	"time"
 
 	"github.com/SantiagoBobrik/agent-pulse/internal/domain"
 )
@@ -24,7 +23,7 @@ var namePattern = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_-]*$`)
 type Client struct {
 	Name      string            `yaml:"name" json:"name"`
 	URL       string            `yaml:"url" json:"url"`
-	Timeout   time.Duration     `yaml:"timeout" json:"timeout"`
+	Timeout   int               `yaml:"timeout" json:"timeout"`
 	Events    []string          `yaml:"events,omitempty" json:"events,omitempty"`
 	Providers []string          `yaml:"providers,omitempty" json:"providers,omitempty"`
 	Headers   map[string]string `yaml:"headers,omitempty" json:"headers,omitempty"`
@@ -49,10 +48,10 @@ func (c *Client) Validate() error {
 	}
 
 	if c.Timeout == 0 {
-		c.Timeout = 2 * time.Second
+		c.Timeout = 2000
 	}
-	if c.Timeout < 0 || c.Timeout > 30*time.Second {
-		return fmt.Errorf("timeout must be between 0 and 30s, got %s", c.Timeout)
+	if c.Timeout < 0 || c.Timeout > 30000 {
+		return fmt.Errorf("timeout must be between 0 and 30000ms, got %d", c.Timeout)
 	}
 
 	for _, e := range c.Events {

@@ -7,7 +7,6 @@ import (
 	"net/http/httptest"
 	"sync/atomic"
 	"testing"
-	"time"
 
 	"github.com/SantiagoBobrik/agent-pulse/internal/client"
 )
@@ -21,7 +20,7 @@ func TestHandleEventValid(t *testing.T) {
 	defer ts.Close()
 
 	d := NewDispatcher([]client.Client{
-		{Name: "test", URL: ts.URL, Timeout: 2 * time.Second},
+		{Name: "test", URL: ts.URL, Timeout: 2000},
 	})
 
 	handler := handleEvent(d)

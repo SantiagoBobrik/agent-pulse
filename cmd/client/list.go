@@ -31,7 +31,7 @@ var listCmd = &cobra.Command{
 			if len(c.Events) > 0 {
 				events = strings.Join(c.Events, ",")
 			}
-			fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", c.Name, c.URL, c.Timeout, events)
+			fmt.Fprintf(w, "%s\t%s\t%dms\t%s\n", c.Name, c.URL, c.Timeout, events)
 		}
 		w.Flush()
 

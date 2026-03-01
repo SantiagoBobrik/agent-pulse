@@ -3,8 +3,8 @@ package clientcmd
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
-	"time"
 
 	"github.com/SantiagoBobrik/agent-pulse/internal/client"
 	"github.com/SantiagoBobrik/agent-pulse/internal/config"
@@ -61,7 +61,7 @@ func init() {
 	addCmd.Flags().StringVar(&flagName, "name", "", "client name")
 	addCmd.Flags().StringVar(&flagURL, "url", "", "client URL or IP")
 	addCmd.Flags().StringVar(&flagPort, "port", "", "client port (default 80)")
-	addCmd.Flags().StringVar(&flagTimeout, "timeout", "", "delivery timeout (default 2s)")
+	addCmd.Flags().StringVar(&flagTimeout, "timeout", "", "delivery timeout in ms (default 2000)")
 	addCmd.Flags().StringVar(&flagEvents, "events", "", "comma-separated event types or 'all'")
 }
 
@@ -74,11 +74,11 @@ func buildClientFromFlags() (*client.Client, error) {
 		url = url + ":" + flagPort
 	}
 
-	timeout := 2 * time.Second
+	timeout := 2000
 	if flagTimeout != "" {
-		parsed, err := time.ParseDuration(flagTimeout)
+		parsed, err := strconv.Atoi(flagTimeout)
 		if err != nil {
-			return nil, fmt.Errorf("invalid timeout %q: %w", flagTimeout, err)
+			return nil, fmt.Errorf("invalid timeout %q: must be milliseconds", flagTimeout)
 		}
 		timeout = parsed
 	}

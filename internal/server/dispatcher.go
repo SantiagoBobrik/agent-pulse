@@ -47,10 +47,10 @@ func (d *Dispatcher) send(c client.Client, event domain.Event) error {
 
 	timeout := c.Timeout
 	if timeout == 0 {
-		timeout = 2 * time.Second
+		timeout = 2000
 	}
 
-	httpClient := &http.Client{Timeout: timeout}
+	httpClient := &http.Client{Timeout: time.Duration(timeout) * time.Millisecond}
 
 	req, err := http.NewRequest(http.MethodPost, c.URL, bytes.NewReader(data))
 	if err != nil {

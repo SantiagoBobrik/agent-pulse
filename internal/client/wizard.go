@@ -4,16 +4,17 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
-	"time"
 )
 
 var allEventTypes = []string{"session_start", "stop", "notification"}
+var allProviders = []string{"claude", "gemini"}
 
 func RunWizard(r io.Reader, w io.Writer) (*Client, error) {
 	scanner := bufio.NewScanner(r)
 
-	name, err := prompt(scanner, w, "Nombre del client")
+	name, err := prompt(scanner, w, "Client name")
 	if err != nil {
 		return nil, err
 	}
@@ -21,7 +22,7 @@ func RunWizard(r io.Reader, w io.Writer) (*Client, error) {
 		return nil, fmt.Errorf("client name is required")
 	}
 
-	rawURL, err := prompt(scanner, w, "URL o IP")
+	rawURL, err := prompt(scanner, w, "URL or IP")
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +30,7 @@ func RunWizard(r io.Reader, w io.Writer) (*Client, error) {
 		return nil, fmt.Errorf("client URL is required")
 	}
 
-	portStr, err := prompt(scanner, w, "Puerto (default 80)")
+	portStr, err := prompt(scanner, w, "Port (default 80)")
 	if err != nil {
 		return nil, err
 	}
@@ -42,42 +43,61 @@ func RunWizard(r io.Reader, w io.Writer) (*Client, error) {
 		url = url + ":" + portStr
 	}
 
-	timeoutStr, err := prompt(scanner, w, "Timeout (default 2s)")
+	timeoutStr, err := prompt(scanner, w, "Timeout in ms (default 2000)")
 	if err != nil {
 		return nil, err
 	}
-	timeout := 2 * time.Second
+	timeout := 2000
 	if timeoutStr != "" {
-		parsed, err := time.ParseDuration(timeoutStr)
+		parsed, err := strconv.Atoi(timeoutStr)
 		if err != nil {
 			return nil, fmt.Errorf("invalid timeout %q: %w", timeoutStr, err)
 		}
 		timeout = parsed
 	}
 
-	eventChoice, err := prompt(scanner, w, "Eventos a recibir (todos / seleccionar)")
+	providerChoice, err := prompt(scanner, w, "Providers to receive (all / select)")
+	if err != nil {
+		return nil, err
+	}
+
+	var providers []string
+	if providerChoice == "select" {
+		for _, p := range allProviders {
+			include, err := prompt(scanner, w, fmt.Sprintf("  Include %s? (y/n)", p))
+			if err != nil {
+				return nil, err
+			}
+			if include == "y" || include == "yes" || include == "" {
+				providers = append(providers, p)
+			}
+		}
+	}
+
+	eventChoice, err := prompt(scanner, w, "Events to receive (all / select)")
 	if err != nil {
 		return nil, err
 	}
 
 	var events []string
-	if eventChoice == "seleccionar" || eventChoice == "select" {
+	if eventChoice == "select" {
 		for _, et := range allEventTypes {
-			include, err := prompt(scanner, w, fmt.Sprintf("  Incluir %s? (s/n)", et))
+			include, err := prompt(scanner, w, fmt.Sprintf("  Include %s? (y/n)", et))
 			if err != nil {
 				return nil, err
 			}
-			if include == "s" || include == "si" || include == "y" || include == "yes" || include == "" {
+			if include == "y" || include == "yes" || include == "" {
 				events = append(events, et)
 			}
 		}
 	}
 
 	c := &Client{
-		Name:    name,
-		URL:     url,
-		Timeout: timeout,
-		Events:  events,
+		Name:      name,
+		URL:       url,
+		Timeout:   timeout,
+		Events:    events,
+		Providers: providers,
 	}
 
 	if err := c.Validate(); err != nil {

@@ -28,8 +28,8 @@ func TestDispatchFanOut(t *testing.T) {
 	defer ts2.Close()
 
 	d := NewDispatcher([]client.Client{
-		{Name: "c1", URL: ts1.URL, Timeout: 2 * time.Second},
-		{Name: "c2", URL: ts2.URL, Timeout: 2 * time.Second},
+		{Name: "c1", URL: ts1.URL, Timeout: 2000},
+		{Name: "c2", URL: ts2.URL, Timeout: 2000},
 	})
 
 	d.Dispatch(domain.Event{Type: "stop", Data: json.RawMessage(`{"session_id":"test"}`)})
@@ -48,7 +48,7 @@ func TestDispatchEventFiltering(t *testing.T) {
 	defer ts.Close()
 
 	d := NewDispatcher([]client.Client{
-		{Name: "stop-only", URL: ts.URL, Timeout: 2 * time.Second, Events: []string{"stop"}},
+		{Name: "stop-only", URL: ts.URL, Timeout: 2000, Events: []string{"stop"}},
 	})
 
 	d.Dispatch(domain.Event{Type: "session_start"})
@@ -73,7 +73,7 @@ func TestDispatchEmptyEventsAcceptsAll(t *testing.T) {
 	defer ts.Close()
 
 	d := NewDispatcher([]client.Client{
-		{Name: "all", URL: ts.URL, Timeout: 2 * time.Second},
+		{Name: "all", URL: ts.URL, Timeout: 2000},
 	})
 
 	d.Dispatch(domain.Event{Type: "session_start"})
@@ -93,7 +93,7 @@ func TestDispatchClientTimeout(t *testing.T) {
 	defer ts.Close()
 
 	d := NewDispatcher([]client.Client{
-		{Name: "slow", URL: ts.URL, Timeout: 100 * time.Millisecond},
+		{Name: "slow", URL: ts.URL, Timeout: 100},
 	})
 
 	start := time.Now()
@@ -108,7 +108,7 @@ func TestDispatchClientTimeout(t *testing.T) {
 func TestDispatchClientUnreachable(t *testing.T) {
 	// Use a port that's not listening
 	d := NewDispatcher([]client.Client{
-		{Name: "down", URL: "http://127.0.0.1:1", Timeout: 500 * time.Millisecond},
+		{Name: "down", URL: "http://127.0.0.1:1", Timeout: 500},
 	})
 
 	// Should not panic
@@ -122,7 +122,7 @@ func TestDispatchClientNon2xx(t *testing.T) {
 	defer ts.Close()
 
 	d := NewDispatcher([]client.Client{
-		{Name: "error", URL: ts.URL, Timeout: 2 * time.Second},
+		{Name: "error", URL: ts.URL, Timeout: 2000},
 	})
 
 	// Should not panic, error is logged
@@ -142,7 +142,7 @@ func TestDispatchCustomHeaders(t *testing.T) {
 		{
 			Name:    "authed",
 			URL:     ts.URL,
-			Timeout: 2 * time.Second,
+			Timeout: 2000,
 			Headers: map[string]string{
 				"Authorization": "Bearer my-secret",
 				"X-API-Key":     "key-123",
@@ -175,8 +175,8 @@ func TestDispatchOneFailureDoesNotBlockOthers(t *testing.T) {
 	defer slowServer.Close()
 
 	d := NewDispatcher([]client.Client{
-		{Name: "slow", URL: slowServer.URL, Timeout: 100 * time.Millisecond},
-		{Name: "fast", URL: okServer.URL, Timeout: 2 * time.Second},
+		{Name: "slow", URL: slowServer.URL, Timeout: 100},
+		{Name: "fast", URL: okServer.URL, Timeout: 2000},
 	})
 
 	start := time.Now()
@@ -200,7 +200,7 @@ func TestDispatchPayload(t *testing.T) {
 	defer ts.Close()
 
 	d := NewDispatcher([]client.Client{
-		{Name: "test", URL: ts.URL, Timeout: 2 * time.Second},
+		{Name: "test", URL: ts.URL, Timeout: 2000},
 	})
 
 	d.Dispatch(domain.Event{Type: "stop", Data: json.RawMessage(`{"session_id":"abc","message":"done"}`)})

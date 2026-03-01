@@ -2,7 +2,6 @@ package client
 
 import (
 	"testing"
-	"time"
 
 	"github.com/SantiagoBobrik/agent-pulse/internal/domain"
 )
@@ -18,7 +17,7 @@ func TestClientValidate(t *testing.T) {
 			client: Client{
 				Name:    "escritorio",
 				URL:     "http://192.168.1.100",
-				Timeout: 2 * time.Second,
+				Timeout: 2000,
 				Events:  []string{"stop", "notification"},
 			},
 			wantErr: false,
@@ -59,7 +58,7 @@ func TestClientValidate(t *testing.T) {
 			client: Client{
 				Name:    "test",
 				URL:     "http://example.com",
-				Timeout: 60 * time.Second,
+				Timeout: 60000,
 			},
 			wantErr: true,
 		},
@@ -68,7 +67,7 @@ func TestClientValidate(t *testing.T) {
 			client: Client{
 				Name:    "test",
 				URL:     "http://example.com",
-				Timeout: -1 * time.Second,
+				Timeout: -1000,
 			},
 			wantErr: true,
 		},

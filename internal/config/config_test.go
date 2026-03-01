@@ -4,7 +4,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/SantiagoBobrik/agent-pulse/internal/client"
 )
@@ -42,13 +41,13 @@ bind_address: "0.0.0.0"
 clients:
   - name: test-client
     url: http://192.168.1.100
-    timeout: 3s
+    timeout: 3000
     events:
       - stop
       - notification
   - name: webhook
     url: https://hooks.example.com
-    timeout: 5s
+    timeout: 5000
 `
 	if err := os.WriteFile(filepath.Join(configDir, "config.yaml"), []byte(yaml), 0644); err != nil {
 		t.Fatal(err)
@@ -71,8 +70,8 @@ clients:
 	if cfg.Clients[0].Name != "test-client" {
 		t.Errorf("Client[0].Name = %q, want test-client", cfg.Clients[0].Name)
 	}
-	if cfg.Clients[0].Timeout != 3*time.Second {
-		t.Errorf("Client[0].Timeout = %v, want 3s", cfg.Clients[0].Timeout)
+	if cfg.Clients[0].Timeout != 3000 {
+		t.Errorf("Client[0].Timeout = %v, want 3000", cfg.Clients[0].Timeout)
 	}
 	if len(cfg.Clients[0].Events) != 2 {
 		t.Errorf("Client[0].Events count = %d, want 2", len(cfg.Clients[0].Events))
@@ -90,7 +89,7 @@ func TestSaveAndRoundTrip(t *testing.T) {
 			{
 				Name:    "test",
 				URL:     "http://example.com",
-				Timeout: 2 * time.Second,
+				Timeout: 2000,
 				Events:  []string{"stop"},
 			},
 		},
@@ -114,8 +113,8 @@ func TestSaveAndRoundTrip(t *testing.T) {
 	if loaded.Clients[0].Name != "test" {
 		t.Errorf("Client.Name = %q, want test", loaded.Clients[0].Name)
 	}
-	if loaded.Clients[0].Timeout != 2*time.Second {
-		t.Errorf("Client.Timeout = %v, want 2s", loaded.Clients[0].Timeout)
+	if loaded.Clients[0].Timeout != 2000 {
+		t.Errorf("Client.Timeout = %v, want 2000", loaded.Clients[0].Timeout)
 	}
 }
 
