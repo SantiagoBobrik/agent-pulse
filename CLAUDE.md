@@ -3,10 +3,10 @@
 Auto-generated from all feature plans. Last updated: 2026-02-25
 
 ## Active Technologies
-- Go 1.24+ + cobra (CLI), chi/v5 (HTTP router), gorilla/websocket (WebSocket — existing), gopkg.in/yaml.v3 (config), slog (stdlib logging) (002-client-routing)
+- Go 1.25+ + cobra (CLI), chi/v5 (HTTP router), gorilla/websocket (WebSocket — existing), gopkg.in/yaml.v3 (config), slog (stdlib logging) (002-client-routing)
 - YAML file at `~/.config/agent-pulse/config.yaml` (existing path) (002-client-routing)
 
-- Go 1.24+ + cobra (CLI), chi (HTTP router), gorilla/websocket (WebSocket), slog (structured logging), gopkg.in/yaml.v3 (config) (001-event-bridge)
+- Go 1.25+ + cobra (CLI), chi (HTTP router), gorilla/websocket (WebSocket), slog (structured logging), gopkg.in/yaml.v3 (config) (001-event-bridge)
 
 ## Project Structure
 
