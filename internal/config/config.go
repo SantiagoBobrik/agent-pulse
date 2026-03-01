@@ -24,7 +24,13 @@ type Config struct {
 	Clients     []client.Client `yaml:"clients,omitempty"`
 }
 
+// PathOverride allows tests to redirect config.Load to a temp file.
+var PathOverride string
+
 func configPath() (string, error) {
+	if PathOverride != "" {
+		return PathOverride, nil
+	}
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return "", err

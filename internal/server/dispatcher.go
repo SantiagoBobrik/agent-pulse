@@ -9,21 +9,26 @@ import (
 	"time"
 
 	"github.com/SantiagoBobrik/agent-pulse/internal/client"
+	"github.com/SantiagoBobrik/agent-pulse/internal/config"
 	"github.com/SantiagoBobrik/agent-pulse/internal/domain"
 	"github.com/SantiagoBobrik/agent-pulse/internal/logger"
 )
 
-type Dispatcher struct {
-	clients []client.Client
-}
+type Dispatcher struct{}
 
-func NewDispatcher(clients []client.Client) *Dispatcher {
-	return &Dispatcher{clients: clients}
+func NewDispatcher() *Dispatcher {
+	return &Dispatcher{}
 }
 
 func (d *Dispatcher) Dispatch(event domain.Event) {
+	cfg, err := config.Load()
+	if err != nil {
+		logger.Error("config reload failed", "error", err)
+		return
+	}
+
 	var wg sync.WaitGroup
-	for _, c := range d.clients {
+	for _, c := range cfg.Clients {
 		if !c.Accepts(event) {
 			logger.Info("client skipped", "name", c.Name, "reason", "event_filtered")
 			continue

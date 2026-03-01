@@ -27,7 +27,7 @@ func TestDispatchFanOut(t *testing.T) {
 	}))
 	defer ts2.Close()
 
-	d := NewDispatcher([]client.Client{
+	d := newTestDispatcher(t, []client.Client{
 		{Name: "c1", URL: ts1.URL, Timeout: 2000},
 		{Name: "c2", URL: ts2.URL, Timeout: 2000},
 	})
@@ -47,7 +47,7 @@ func TestDispatchEventFiltering(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	d := NewDispatcher([]client.Client{
+	d := newTestDispatcher(t, []client.Client{
 		{Name: "stop-only", URL: ts.URL, Timeout: 2000, Events: []string{"stop"}},
 	})
 
@@ -72,7 +72,7 @@ func TestDispatchEmptyEventsAcceptsAll(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	d := NewDispatcher([]client.Client{
+	d := newTestDispatcher(t, []client.Client{
 		{Name: "all", URL: ts.URL, Timeout: 2000},
 	})
 
@@ -92,7 +92,7 @@ func TestDispatchClientTimeout(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	d := NewDispatcher([]client.Client{
+	d := newTestDispatcher(t, []client.Client{
 		{Name: "slow", URL: ts.URL, Timeout: 100},
 	})
 
@@ -107,7 +107,7 @@ func TestDispatchClientTimeout(t *testing.T) {
 
 func TestDispatchClientUnreachable(t *testing.T) {
 	// Use a port that's not listening
-	d := NewDispatcher([]client.Client{
+	d := newTestDispatcher(t, []client.Client{
 		{Name: "down", URL: "http://127.0.0.1:1", Timeout: 500},
 	})
 
@@ -121,7 +121,7 @@ func TestDispatchClientNon2xx(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	d := NewDispatcher([]client.Client{
+	d := newTestDispatcher(t, []client.Client{
 		{Name: "error", URL: ts.URL, Timeout: 2000},
 	})
 
@@ -138,7 +138,7 @@ func TestDispatchCustomHeaders(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	d := NewDispatcher([]client.Client{
+	d := newTestDispatcher(t, []client.Client{
 		{
 			Name:    "authed",
 			URL:     ts.URL,
@@ -174,7 +174,7 @@ func TestDispatchOneFailureDoesNotBlockOthers(t *testing.T) {
 	}))
 	defer slowServer.Close()
 
-	d := NewDispatcher([]client.Client{
+	d := newTestDispatcher(t, []client.Client{
 		{Name: "slow", URL: slowServer.URL, Timeout: 100},
 		{Name: "fast", URL: okServer.URL, Timeout: 2000},
 	})
@@ -199,7 +199,7 @@ func TestDispatchPayload(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	d := NewDispatcher([]client.Client{
+	d := newTestDispatcher(t, []client.Client{
 		{Name: "test", URL: ts.URL, Timeout: 2000},
 	})
 

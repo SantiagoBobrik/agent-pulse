@@ -19,7 +19,7 @@ func TestHandleEventValid(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	d := NewDispatcher([]client.Client{
+	d := newTestDispatcher(t, []client.Client{
 		{Name: "test", URL: ts.URL, Timeout: 2000},
 	})
 
@@ -41,7 +41,7 @@ func TestHandleEventValid(t *testing.T) {
 }
 
 func TestHandleEventInvalidJSON(t *testing.T) {
-	d := NewDispatcher(nil)
+	d := newTestDispatcher(t, nil)
 	handler := handleEvent(d)
 
 	req := httptest.NewRequest(http.MethodPost, "/event", bytes.NewBufferString("{invalid"))
@@ -55,7 +55,7 @@ func TestHandleEventInvalidJSON(t *testing.T) {
 }
 
 func TestHandleEventUnknownType(t *testing.T) {
-	d := NewDispatcher(nil)
+	d := newTestDispatcher(t, nil)
 	handler := handleEvent(d)
 
 	body := `{"event":"unknown"}`
@@ -73,7 +73,7 @@ func TestHandleEventAllTypes(t *testing.T) {
 	types := []string{"session_start", "stop", "notification"}
 	for _, et := range types {
 		t.Run(et, func(t *testing.T) {
-			d := NewDispatcher(nil)
+			d := newTestDispatcher(t, nil)
 			handler := handleEvent(d)
 
 			event := map[string]any{"event": et}

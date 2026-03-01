@@ -29,7 +29,7 @@ var Cmd = &cobra.Command{
 			port = portFlag
 		}
 
-		dispatcher := server.NewDispatcher(cfg.Clients)
+		dispatcher := server.NewDispatcher()
 		srv := server.NewServer(dispatcher, port, cfg.BindAddress)
 
 		errCh := make(chan error, 1)
