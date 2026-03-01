@@ -63,9 +63,9 @@ func buildHooks() map[string]any {
 	}
 
 	return map[string]any{
-		"SessionStart": hookEntry("agent-pulse hook session_start"),
-		"SessionEnd":   hookEntry("agent-pulse hook session_end"),
-		"Stop":         hookEntry("agent-pulse hook stop"),
-		"Notification": hookEntry("agent-pulse hook notification"),
+		"SessionStart": hookEntry("agent-pulse hook --provider claude --event session_start"),
+		"SessionEnd":   hookEntry("agent-pulse hook --provider claude --event session_end"),
+		"Stop":         hookEntry("agent-pulse hook --provider claude --event stop"),
+		"Notification": hookEntry("agent-pulse hook --provider claude --event notification"),
 	}
 }

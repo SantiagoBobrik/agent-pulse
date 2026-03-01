@@ -31,9 +31,9 @@ func TestSetupFreshDirectory(t *testing.T) {
 	}
 
 	expected := map[string]string{
-		"SessionStart": "agent-pulse hook session_start",
-		"Stop":         "agent-pulse hook stop",
-		"Notification": "agent-pulse hook notification",
+		"SessionStart": "agent-pulse hook --provider claude --event session_start",
+		"Stop":         "agent-pulse hook --provider claude --event stop",
+		"Notification": "agent-pulse hook --provider claude --event notification",
 	}
 
 	for hookName, wantCmd := range expected {
