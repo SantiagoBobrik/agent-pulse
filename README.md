@@ -28,6 +28,7 @@ Every AI code agent has its own hook system — different formats, different con
 - **One config, all agents** — Define your clients once in `~/.config/agent-pulse/config.yaml`. Every project, every agent, every event routed through one place.
 - **Zero per-project setup** — No more duplicating hook configs across repositories. Register your hooks once with `agent-pulse setup` and you're done.
 - **Fan-out to anything** — HTTP endpoints, webhooks, IoT devices (ESP32, Raspberry Pi, etc.), scripts — if it speaks HTTP, agent-pulse can reach it.
+- **Fully local** — Everything runs on your machine. No cloud, no accounts, no data leaves your network.
 - **Filter what matters** — Route specific events to specific clients. Send `notification` events to your desk light, `session_start` to your dashboard, everything to your logger.
 
 ---
