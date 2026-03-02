@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 
 	"github.com/SantiagoBobrik/agent-pulse/internal/client"
-	"github.com/SantiagoBobrik/agent-pulse/internal/logger"
 	"gopkg.in/yaml.v3"
 )
 
@@ -27,15 +26,24 @@ type Config struct {
 // PathOverride allows tests to redirect config.Load to a temp file.
 var PathOverride string
 
-func configPath() (string, error) {
-	if PathOverride != "" {
-		return PathOverride, nil
-	}
+// Dir returns the agent-pulse config directory: ~/.config/agent-pulse
+func Dir() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(home, ".config", "agent-pulse", "config.yaml"), nil
+	return filepath.Join(home, ".config", "agent-pulse"), nil
+}
+
+func configPath() (string, error) {
+	if PathOverride != "" {
+		return PathOverride, nil
+	}
+	dir, err := Dir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, "config.yaml"), nil
 }
 
 func Load() (*Config, error) {
@@ -49,7 +57,6 @@ func Load() (*Config, error) {
 		}
 	}
 	if err := cfg.Validate(); err != nil {
-		logger.Error("invalid configuration", "error", err)
 		return nil, err
 	}
 
