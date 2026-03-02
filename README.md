@@ -137,7 +137,7 @@ You can configure hooks at the **user level** (`~/.claude/settings.json`) to app
 
 > **Note:** Gemini CLI support is untested and under review. The hook interface may change.
 
-Gemini CLI uses the same stdin/stdout JSON protocol as Claude Code. Once hooks stabilize, the configuration in `~/.gemini/settings.json` will follow this pattern:
+Gemini CLI uses the same stdin/stdout JSON protocol as Claude Code. Add hooks to `~/.gemini/settings.json`:
 
 ```json
 {
@@ -152,16 +152,6 @@ Gemini CLI uses the same stdin/stdout JSON protocol as Claude Code. Once hooks s
         ]
       }
     ],
-    "SessionEnd": [
-      {
-        "hooks": [
-          {
-            "command": "agent-pulse hook --provider gemini --event session_end",
-            "type": "command"
-          }
-        ]
-      }
-    ],
     "Notification": [
       {
         "hooks": [
@@ -171,20 +161,12 @@ Gemini CLI uses the same stdin/stdout JSON protocol as Claude Code. Once hooks s
           }
         ]
       }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "command": "agent-pulse hook --provider gemini --event stop",
-            "type": "command"
-          }
-        ]
-      }
     ]
   }
 }
 ```
+
+Add as many events as you need following the same pattern. See the [Gemini CLI Hooks documentation](https://geminicli.com/docs/hooks/) for all available hook events.
 
 ### Other Providers
 
