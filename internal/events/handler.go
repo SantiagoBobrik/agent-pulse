@@ -13,6 +13,7 @@ import (
 	"github.com/SantiagoBobrik/agent-pulse/internal/config"
 	"github.com/SantiagoBobrik/agent-pulse/internal/domain"
 	"github.com/SantiagoBobrik/agent-pulse/internal/logger"
+	"github.com/SantiagoBobrik/agent-pulse/internal/projectconfig"
 	"golang.org/x/term"
 )
 
@@ -37,7 +38,14 @@ func HandleEvent(provider domain.Provider, eventType domain.EventType) error {
 		return err
 	}
 
-	return dispatch(cfg, provider, eventType, data)
+	var metadata json.RawMessage
+	if pc, err := projectconfig.Load(); err != nil {
+		logger.Warn("failed to load project config", "error", err)
+	} else if pc != nil {
+		metadata = pc.Metadata
+	}
+
+	return dispatch(cfg, provider, eventType, data, metadata)
 }
 
 func ensureServer(cfg *config.Config) error {
@@ -61,11 +69,12 @@ func ensureServer(cfg *config.Config) error {
 	return nil
 }
 
-func dispatch(cfg *config.Config, provider domain.Provider, eventType domain.EventType, data json.RawMessage) error {
+func dispatch(cfg *config.Config, provider domain.Provider, eventType domain.EventType, data json.RawMessage, metadata json.RawMessage) error {
 	body, err := json.Marshal(domain.Event{
 		Provider: provider,
 		Type:     eventType,
 		Data:     data,
+		Metadata: metadata,
 	})
 	if err != nil {
 		return fmt.Errorf("marshal event: %w", err)

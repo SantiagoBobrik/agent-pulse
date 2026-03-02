@@ -8,6 +8,7 @@ type Event struct {
 	Provider Provider        `json:"provider,omitempty"`
 	Type     EventType       `json:"event"`
 	Data     json.RawMessage `json:"data,omitempty"`
+	Metadata json.RawMessage `json:"metadata,omitempty"`
 }
 
 var Events = struct {

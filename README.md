@@ -29,6 +29,7 @@ Every AI code agent has its own hook system — different formats, different con
 - **Zero per-project setup** — No more duplicating hook configs across repositories. Register your hooks once and you're done.
 - **Fan-out to anything** — HTTP endpoints, webhooks, IoT devices (ESP32, Raspberry Pi, etc.), scripts — if it speaks HTTP, agent-pulse can reach it.
 - **Fully local** — Everything runs on your machine. No cloud, no accounts, no data leaves your network.
+- **Enrich with metadata** — Attach custom data to every lifecycle hook via a project-level `.agent-pulse.json` — project name, team, or anything your clients need.
 - **Filter what matters** — Route specific events to specific clients. Send `notification` events to your desk light, `session_start` to your dashboard, everything to your logger.
 
 ---
@@ -52,11 +53,19 @@ Every AI code agent has its own hook system — different formats, different con
 - **Auto-start** — The gateway starts automatically when a hook fires — no need to manually run the server
 - **Parallel dispatch** — Events fan out to all matching clients concurrently
 - **Config hot-reload** — Add or remove clients without restarting the server
+- **Project metadata** — Attach project context (name, team) to every event via a local `.agent-pulse.json` file
 - **Single binary** — Zero runtime dependencies, just one Go binary
 
 ---
 
 ## Installation
+
+### Homebrew
+
+```bash
+brew tap SantiagoBobrik/tap
+brew install agent-pulse
+```
 
 ### From source
 
@@ -71,13 +80,6 @@ Make sure `$GOPATH/bin` (or `$HOME/go/bin`) is in your PATH:
 ```bash
 # Add to your ~/.bashrc or ~/.zshrc
 export PATH="$PATH:$(go env GOPATH)/bin"
-```
-
-### Homebrew
-
-```bash
-brew tap SantiagoBobrik/tap
-brew install agent-pulse
 ```
 
 ---
@@ -175,7 +177,7 @@ Support for **Codex CLI** and **OpenCode** is on the roadmap. Codex CLI hooks ar
 
 ## Configuration
 
-agent-pulse uses a single YAML file at `~/.config/agent-pulse/config.yaml`. This is the only file you need to manage.
+The global config at `~/.config/agent-pulse/config.yaml` controls **where events go** — which clients receive them, how they're routed, and server settings. This is the only file you need to manage.
 
 ### Config anatomy
 
@@ -260,11 +262,51 @@ clients:
 
 ---
 
+## Project Metadata
+
+You can attach project-level context to every event by placing a `.agent-pulse.json` file in your project root (the directory where the agent runs):
+
+```json
+{
+  "metadata": {
+    "project": "my-api",
+    "team": "backend"
+  }
+}
+```
+
+When present, the `metadata` object is included in every event sent to your clients. The structure is freeform — put whatever key/value pairs are useful for your setup.
+
+- If the file doesn't exist, events are sent without metadata (no error).
+- If the file contains invalid JSON, a warning is logged and the event is sent without metadata.
+- Discovery is CWD-only — agent-pulse does not walk parent directories.
+
+This is separate from the global config (`~/.config/agent-pulse/config.yaml`), which controls **where** events go. `.agent-pulse.json` controls **what context** travels with them.
+
+---
+
+## Event payload
+
+Events are delivered to clients as JSON via HTTP POST:
+
+```json
+{
+  "provider": "claude",
+  "event": "stop",
+  "data": { ... },
+  "metadata": { "project": "my-api", "team": "backend" }
+}
+```
+
+The `data` field contains the raw payload from the agent, passed through without modification. The `metadata` field is included when a `.agent-pulse.json` file exists in the working directory (see [Project Metadata](#project-metadata)).
+
+---
+
 ## Commands
 
 ### `agent-pulse server start`
 
-Start the event bridge gateway.
+Start the event bridge gateway. You normally don't need to run this yourself — when an agent hook fires, `agent-pulse hook` checks whether the server is running and starts it automatically in the background if it isn't. The server stays alive to handle subsequent events until you explicitly stop it with `agent-pulse server down`.
 
 ```bash
 agent-pulse server start          # Use port from config (default: 8789)
@@ -368,22 +410,6 @@ echo '{"message": "done"}' | agent-pulse hook --provider claude --event stop
 | `--event` | Yes | Lifecycle event name (`session_start`, `session_end`, `stop`, `notification`) |
 
 Reads the event payload from **stdin** as JSON. If the gateway is unreachable, it automatically starts the server in the background before dispatching.
-
----
-
-## Event payload
-
-Events are delivered to clients as JSON via HTTP POST:
-
-```json
-{
-  "provider": "claude",
-  "event": "stop",
-  "data": { ... }
-}
-```
-
-The `data` field contains the raw payload from the agent, passed through without modification.
 
 ---
 
