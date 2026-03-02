@@ -8,6 +8,7 @@ import (
 
 	"github.com/SantiagoBobrik/agent-pulse/internal/client"
 	"github.com/SantiagoBobrik/agent-pulse/internal/config"
+	"github.com/SantiagoBobrik/agent-pulse/internal/logger"
 	"github.com/spf13/cobra"
 )
 
@@ -52,7 +53,8 @@ var addCmd = &cobra.Command{
 			return err
 		}
 
-		fmt.Fprintf(os.Stdout, "\n✓ Client %q registered.\n", c.Name)
+		logger.Info("client registered", "name", c.Name, "url", c.URL)
+		logger.Info("to set timeout or headers, edit ~/.config/agent-pulse/config.yaml")
 		return nil
 	},
 }

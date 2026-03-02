@@ -2,10 +2,10 @@ package clientcmd
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/SantiagoBobrik/agent-pulse/internal/config"
+	"github.com/SantiagoBobrik/agent-pulse/internal/logger"
 	"github.com/spf13/cobra"
 )
 
@@ -39,7 +39,7 @@ var removeCmd = &cobra.Command{
 			return err
 		}
 
-		fmt.Fprintf(os.Stdout, "✓ Client %q removed.\n", name)
+		logger.Info("client removed", "name", name)
 		return nil
 	},
 }

@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"strconv"
 	"strings"
 )
 
@@ -43,19 +42,6 @@ func RunWizard(r io.Reader, w io.Writer) (*Client, error) {
 		url = url + ":" + portStr
 	}
 
-	timeoutStr, err := prompt(scanner, w, "Timeout in ms (default 2000)")
-	if err != nil {
-		return nil, err
-	}
-	timeout := 2000
-	if timeoutStr != "" {
-		parsed, err := strconv.Atoi(timeoutStr)
-		if err != nil {
-			return nil, fmt.Errorf("invalid timeout %q: %w", timeoutStr, err)
-		}
-		timeout = parsed
-	}
-
 	fmt.Fprintln(w, "  Comma-separated values accepted for providers and events.")
 
 	providerChoice, err := prompt(scanner, w, fmt.Sprintf("Providers (%s or all)", strings.Join(allProviders, ",")))
@@ -75,7 +61,6 @@ func RunWizard(r io.Reader, w io.Writer) (*Client, error) {
 	c := &Client{
 		Name:      name,
 		URL:       url,
-		Timeout:   timeout,
 		Events:    events,
 		Providers: providers,
 	}
