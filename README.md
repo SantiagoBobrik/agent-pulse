@@ -63,15 +63,14 @@ Every AI code agent has its own hook system — different formats, different con
 Requires [Go 1.25+](https://go.dev/dl/):
 
 ```bash
-git clone https://github.com/SantiagoBobrik/agent-pulse.git
-cd agent-pulse
-go build -o agent-pulse .
+go install github.com/SantiagoBobrik/agent-pulse@latest
 ```
 
-Move the binary to your PATH:
+Make sure `$GOPATH/bin` (or `$HOME/go/bin`) is in your PATH:
 
 ```bash
-sudo mv agent-pulse /usr/local/bin/
+# Add to your ~/.bashrc or ~/.zshrc
+export PATH="$PATH:$(go env GOPATH)/bin"
 ```
 
 ### Homebrew
