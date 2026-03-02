@@ -1,22 +1,24 @@
-package serve
+package server
 
 import (
 	"context"
+	"fmt"
+	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
 	"github.com/SantiagoBobrik/agent-pulse/internal/config"
 	"github.com/SantiagoBobrik/agent-pulse/internal/logger"
+	"github.com/SantiagoBobrik/agent-pulse/internal/pid"
 	"github.com/SantiagoBobrik/agent-pulse/internal/server"
 	"github.com/spf13/cobra"
 )
 
 var portFlag int
 
-// Cmd is the serve command.
-var Cmd = &cobra.Command{
-	Use:   "serve",
+var startCmd = &cobra.Command{
+	Use:   "start",
 	Short: "Start the event bridge server",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfg, err := config.Load()
@@ -28,6 +30,11 @@ var Cmd = &cobra.Command{
 		if portFlag != 0 {
 			port = portFlag
 		}
+
+		if err := pid.Write(os.Getpid()); err != nil {
+			return fmt.Errorf("failed to write pid file: %w", err)
+		}
+		defer pid.Remove()
 
 		dispatcher := server.NewDispatcher()
 		srv := server.NewServer(dispatcher, port, cfg.BindAddress)
@@ -54,7 +61,7 @@ var Cmd = &cobra.Command{
 		defer cancel()
 
 		if err := srv.Shutdown(shutdownCtx); err != nil {
-			logger.Error("shutdown error", "err", err)
+			logger.Error("shutdown error", "error", err)
 		}
 
 		logger.Info("server stopped")
@@ -63,5 +70,5 @@ var Cmd = &cobra.Command{
 }
 
 func init() {
-	Cmd.Flags().IntVarP(&portFlag, "port", "p", 0, "server listen port (overrides config)")
+	startCmd.Flags().IntVarP(&portFlag, "port", "p", 0, "server listen port (overrides config)")
 }

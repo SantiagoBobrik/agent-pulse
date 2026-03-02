@@ -6,10 +6,13 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/exec"
+	"syscall"
 	"time"
 
 	"github.com/SantiagoBobrik/agent-pulse/internal/config"
 	"github.com/SantiagoBobrik/agent-pulse/internal/domain"
+	"github.com/SantiagoBobrik/agent-pulse/internal/logger"
 	"golang.org/x/term"
 )
 
@@ -25,15 +28,40 @@ func HandleEvent(provider domain.Provider, eventType domain.EventType) error {
 		return fmt.Errorf("invalid stdin JSON: %w", err)
 	}
 
-	return dispatch(provider, eventType, data)
-}
-
-func dispatch(provider domain.Provider, eventType domain.EventType, data json.RawMessage) error {
 	cfg, err := config.Load()
 	if err != nil {
 		return err
 	}
 
+	if err := ensureServer(cfg); err != nil {
+		return err
+	}
+
+	return dispatch(cfg, provider, eventType, data)
+}
+
+func ensureServer(cfg *config.Config) error {
+	healthURL := fmt.Sprintf("%s:%d/health", cfg.GatewayURL, cfg.Port)
+	client := &http.Client{Timeout: time.Second}
+
+	if resp, err := client.Get(healthURL); err == nil {
+		resp.Body.Close()
+		return nil
+	}
+
+	logger.Info("server unreachable, starting it automatically")
+	startServer()
+	time.Sleep(time.Second)
+
+	resp, err := client.Get(healthURL)
+	if err != nil {
+		return fmt.Errorf("server did not start: %w", err)
+	}
+	resp.Body.Close()
+	return nil
+}
+
+func dispatch(cfg *config.Config, provider domain.Provider, eventType domain.EventType, data json.RawMessage) error {
 	body, err := json.Marshal(domain.Event{
 		Provider: provider,
 		Type:     eventType,
@@ -57,4 +85,19 @@ func dispatch(provider domain.Provider, eventType domain.EventType, data json.Ra
 	}
 
 	return nil
+}
+
+func startServer() {
+	exe, err := os.Executable()
+	if err != nil {
+		return
+	}
+	cmd := exec.Command(exe, "server", "start")
+	cmd.Stdin = nil
+	cmd.Stdout = nil
+	cmd.Stderr = nil
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
+	if err := cmd.Start(); err != nil {
+		logger.Error("failed to start server", "error", err)
+	}
 }

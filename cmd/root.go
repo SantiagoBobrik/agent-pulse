@@ -3,8 +3,7 @@ package cmd
 import (
 	clientcmd "github.com/SantiagoBobrik/agent-pulse/cmd/client"
 	"github.com/SantiagoBobrik/agent-pulse/cmd/hook"
-	"github.com/SantiagoBobrik/agent-pulse/cmd/serve"
-	"github.com/SantiagoBobrik/agent-pulse/cmd/setup"
+	"github.com/SantiagoBobrik/agent-pulse/cmd/server"
 	"github.com/spf13/cobra"
 )
 
@@ -20,8 +19,7 @@ var rootCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(hook.Cmd)
 	rootCmd.AddCommand(clientcmd.Cmd)
-	rootCmd.AddCommand(serve.Cmd)
-	rootCmd.AddCommand(setup.Cmd)
+	rootCmd.AddCommand(server.Cmd)
 }
 
 func Execute() error {
