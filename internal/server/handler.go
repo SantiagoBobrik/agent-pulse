@@ -21,11 +21,7 @@ func handleEvent(dispatcher *Dispatcher) http.HandlerFunc {
 			return
 		}
 
-		var data map[string]any
-		if len(eventPayload.Data) > 0 {
-			json.Unmarshal(eventPayload.Data, &data)
-		}
-		logger.Info("event received", "type", eventPayload.Type, "provider", eventPayload.Provider, "data", data)
+		logger.Info("event received", "type", eventPayload.Type, "provider", eventPayload.Provider)
 		dispatcher.Dispatch(eventPayload)
 		w.WriteHeader(http.StatusAccepted)
 	}
