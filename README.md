@@ -32,9 +32,8 @@ Every AI code agent has its own hook system — different formats, different con
 
 ---
 
-## Architecture
+## Diagram
 
-<!-- TODO: Add architecture diagram -->
 
 <p align="center">
   <img src="docs/architecture.png" alt="Architecture diagram" width="1500" />
