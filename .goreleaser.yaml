@@ -1,0 +1,39 @@
+version: 2
+
+builds:
+  - main: .
+    binary: agent-pulse
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w -X github.com/SantiagoBobrik/agent-pulse/cmd.version={{ .Version }}
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^chore:"
+      - "^ci:"
+      - "^test:"
+
+brews:
+  - repository:
+      owner: SantiagoBobrik
+      name: homebrew-tap
+    name: agent-pulse
+    homepage: "https://github.com/SantiagoBobrik/agent-pulse"
+    description: "A local event gateway for AI code agents"
+    license: "MIT"
+    install: |
+      bin.install "agent-pulse"

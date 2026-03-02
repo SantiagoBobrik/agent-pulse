@@ -75,7 +75,7 @@ export PATH="$PATH:$(go env GOPATH)/bin"
 ### Homebrew
 
 ```bash
-# Coming soon
+brew tap SantiagoBobrik/tap
 brew install agent-pulse
 ```
 
