@@ -31,6 +31,7 @@ Every AI code agent has its own hook system — different formats, different con
 - **Fully local** — Everything runs on your machine. No cloud, no accounts, no data leaves your network.
 - **Enrich with metadata** — Attach custom data to every lifecycle hook via a project-level `.agent-pulse.json` — project name, team, or anything your clients need.
 - **Filter what matters** — Route specific events to specific clients. Send `notification` events to your desk light, `session_start` to your dashboard, everything to your logger.
+- **Real-time streaming** — Connect to the SSE endpoint and watch events flow in real-time. Perfect for dashboards, browser UIs, or a simple `curl -N`.
 
 ---
 
