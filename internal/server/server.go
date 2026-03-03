@@ -17,12 +17,13 @@ type Server struct {
 	port       int
 }
 
-func NewServer(dispatcher *Dispatcher, port int, bindAddress string) *Server {
+func NewServer(dispatcher *Dispatcher, broker *Broker, port int, bindAddress string) *Server {
 	r := chi.NewRouter()
 	r.Use(middleware.Heartbeat("/health"))
 	r.Use(middleware.Recoverer)
 
 	r.Post("/event", handleEvent(dispatcher))
+	r.Get("/events/stream", handleSSE(broker))
 
 	return &Server{
 		http: &http.Server{

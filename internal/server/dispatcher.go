@@ -14,10 +14,12 @@ import (
 	"github.com/SantiagoBobrik/agent-pulse/internal/logger"
 )
 
-type Dispatcher struct{}
+type Dispatcher struct {
+	broker *Broker
+}
 
-func NewDispatcher() *Dispatcher {
-	return &Dispatcher{}
+func NewDispatcher(broker *Broker) *Dispatcher {
+	return &Dispatcher{broker: broker}
 }
 
 func (d *Dispatcher) Dispatch(event domain.Event) {
@@ -42,6 +44,11 @@ func (d *Dispatcher) Dispatch(event domain.Event) {
 		}(c)
 	}
 	wg.Wait()
+
+	// Publish to SSE subscribers
+	if d.broker != nil {
+		d.broker.Publish(event)
+	}
 }
 
 func (d *Dispatcher) send(c client.Client, event domain.Event) error {

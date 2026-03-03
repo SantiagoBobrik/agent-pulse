@@ -36,8 +36,9 @@ var startCmd = &cobra.Command{
 		}
 		defer pid.Remove()
 
-		dispatcher := server.NewDispatcher()
-		srv := server.NewServer(dispatcher, port, cfg.BindAddress)
+		broker := server.NewBroker()
+		dispatcher := server.NewDispatcher(broker)
+		srv := server.NewServer(dispatcher, broker, port, cfg.BindAddress)
 
 		errCh := make(chan error, 1)
 		go func() {

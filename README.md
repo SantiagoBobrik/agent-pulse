@@ -53,6 +53,7 @@ Every AI code agent has its own hook system — different formats, different con
 - **Auto-start** — The gateway starts automatically when a hook fires — no need to manually run the server
 - **Parallel dispatch** — Events fan out to all matching clients concurrently
 - **Config hot-reload** — Add or remove clients without restarting the server
+- **SSE streaming** — Real-time event stream via `GET /events/stream` for browsers, dashboards, and `curl`
 - **Project metadata** — Attach project context (name, team) to every event via a local `.agent-pulse.json` file
 - **Single binary** — Zero runtime dependencies, just one Go binary
 
@@ -282,6 +283,39 @@ When present, the `metadata` object is included in every event sent to your clie
 - Discovery is CWD-only — agent-pulse does not walk parent directories.
 
 This is separate from the global config (`~/.config/agent-pulse/config.yaml`), which controls **where** events go. `.agent-pulse.json` controls **what context** travels with them.
+
+---
+
+## SSE streaming
+
+Connect to `GET /events/stream` to receive all events in real-time via [Server-Sent Events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events). This is a firehose — every event the gateway receives is broadcast to all connected SSE clients.
+
+The server binds to `127.0.0.1` (local-only), so SSE is only available from your machine.
+
+### curl
+
+```bash
+curl -N http://localhost:8789/events/stream
+```
+
+Each event arrives as an SSE `data:` line containing the full JSON payload:
+
+```
+data: {"provider":"claude","event":"stop","data":{"session_id":"abc"}}
+
+data: {"provider":"claude","event":"notification","data":{"message":"done"}}
+```
+
+### JavaScript (EventSource)
+
+```javascript
+const source = new EventSource("http://localhost:8789/events/stream");
+
+source.onmessage = (e) => {
+  const event = JSON.parse(e.data);
+  console.log(event.provider, event.event, event.data);
+};
+```
 
 ---
 

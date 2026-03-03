@@ -30,5 +30,5 @@ func newTestDispatcher(t *testing.T, clients []client.Client) *Dispatcher {
 	config.PathOverride = f.Name()
 	t.Cleanup(func() { config.PathOverride = "" })
 
-	return NewDispatcher()
+	return NewDispatcher(nil)
 }
